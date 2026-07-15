@@ -111,16 +111,19 @@ if [ -f /etc/apt/sources.list ]; then
     echo -e "${OK} 已备份原有 sources.list"
 fi
 
-# 写入国内镜像源 (Debian 12 Bookworm)
+# 写入国内镜像源 (自动适配 Debian 版本)
+CODENAME="${DEBIAN_VERSION:-bookworm}"
+echo "  使用版本代号: ${CODENAME}"
+
 cat > /etc/apt/sources.list << APTEOF
 # ANIMA NAS — 灵元定制 Debian 源配置
 # 镜像: ${FASTEST_MIRROR}
 # 生成时间: $(date)
 
-deb https://${FASTEST_MIRROR}/debian/ bookworm main contrib non-free non-free-firmware
-deb https://${FASTEST_MIRROR}/debian/ bookworm-updates main contrib non-free non-free-firmware
-deb https://${FASTEST_MIRROR}/debian-security/ bookworm-security main contrib non-free non-free-firmware
-deb https://${FASTEST_MIRROR}/debian/ bookworm-backports main contrib non-free non-free-firmware
+deb https://${FASTEST_MIRROR}/debian/ ${CODENAME} main contrib non-free non-free-firmware
+deb https://${FASTEST_MIRROR}/debian/ ${CODENAME}-updates main contrib non-free non-free-firmware
+deb https://${FASTEST_MIRROR}/debian-security/ ${CODENAME}-security main contrib non-free non-free-firmware
+deb https://${FASTEST_MIRROR}/debian/ ${CODENAME}-backports main contrib non-free non-free-firmware
 APTEOF
 
 echo -e "${OK} sources.list 已更新"
@@ -201,10 +204,8 @@ echo -e "${OK} SSH 连接: ${GREEN}ssh root@${LOCAL_IP:-<你的NAS IP>}${NC}"
 echo ""
 echo -e "${SECTION}▶ Step 4/8  系统配置${RESET}"
 
-# 交互: 设置主机名
-echo -n "  请输入 NAS 主机名 [anima-nas]: "
-read -r NAS_HOSTNAME
-NAS_HOSTNAME=${NAS_HOSTNAME:-anima-nas}
+# 自动设置主机名 (非交互)
+NAS_HOSTNAME="anima-nas"
 hostnamectl set-hostname "$NAS_HOSTNAME" 2>/dev/null || hostname "$NAS_HOSTNAME"
 echo -e "${OK} 主机名: ${GREEN}${NAS_HOSTNAME}${NC}"
 
@@ -291,7 +292,7 @@ else
     curl -fsSL https://get.docker.com | bash -s docker 2>/dev/null || {
         # 国内安装脚本降级
         curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg 2>/dev/null
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs 2>/dev/null || echo 'bookworm') stable" > /etc/apt/sources.list.d/docker.list
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs 2>/dev/null || echo ${CODENAME:-bookworm}) stable" > /etc/apt/sources.list.d/docker.list
         apt-get update -qq
         apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin 2>/dev/null || true
     }
@@ -315,8 +316,8 @@ if command -v tailscale > /dev/null 2>&1; then
 else
     curl -fsSL https://tailscale.com/install.sh | sh 2>/dev/null || {
         echo -e "${WARN} Tailscale 官方脚本失败，尝试国内镜像..."
-        curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg | tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null 2>/dev/null
-        curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list | tee /etc/apt/sources.list.d/tailscale.list > /dev/null 2>/dev/null
+        curl -fsSL "https://pkgs.tailscale.com/stable/debian/${CODENAME}.noarmor.gpg" 2>/dev/null | tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null 2>/dev/null
+        curl -fsSL "https://pkgs.tailscale.com/stable/debian/${CODENAME}.tailscale-keyring.list" 2>/dev/null | tee /etc/apt/sources.list.d/tailscale.list > /dev/null 2>/dev/null
         apt-get update -qq
         apt-get install -y -qq tailscale 2>/dev/null || true
     }
