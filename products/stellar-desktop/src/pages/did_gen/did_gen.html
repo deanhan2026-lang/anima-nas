@@ -1,0 +1,303 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 2.0 鈥?DID 娉ㄥ唽</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .crypto-info {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .crypto-info h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .crypto-info .algo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .result-section {
+      display: none;
+    }
+    .result-section.visible {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    .generating-overlay {
+      text-align: center;
+      padding: 40px;
+    }
+    .private-key-warning {
+      background: rgba(255,82,82,0.08);
+      border: 1px solid rgba(255,82,82,0.2);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      color: var(--red);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">娆㈣繋</a>
+      <a class="active">DID 娉ㄥ唽</a>
+      <a onclick="StellarNav.navigate('carbon_bind')">纰冲熀缁戝畾</a>
+      <a onclick="StellarNav.navigate('llm_config')">LLM 閰嶇疆</a>
+      <a onclick="StellarNav.navigate('persona_load')">浜烘牸鍔犺浇</a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a onclick="StellarNav.navigate('skills')">鎶€鑳?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">灏辩华</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Step Indicator -->
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      <span class="step-badge">1</span>
+      鐢熸垚鍘讳腑蹇冨寲韬唤
+    </div>
+    <p class="page-desc">
+      绗竴姝ワ細鐢熸垚 Ed25519 瀵嗛挜瀵癸紝鍒涘缓浣犵殑鍘讳腑蹇冨寲鏁板瓧韬唤锛圖ID锛夈€?     绉侀挜灏嗗畨鍏ㄥ湴淇濆瓨鍦ㄦ湰鍦拌澶囦笂锛屾案涓嶄笂浼犮€?
+    </p>
+
+    <!-- Crypto Info Card -->
+    <div class="crypto-info">
+      <h3>馃攼 鍔犲瘑鏂规</h3>
+      <div class="algo-badge">Ed25519 路 DID:key</div>
+      <p style="color:var(--text-dim);font-size:0.88rem;line-height:1.7;">
+        Ed25519 鏄洰鍓嶆渶鍏堣繘鐨勬き鍦嗘洸绾跨鍚嶇畻娉曚箣涓€锛屾彁渚涢珮姘村钩鐨勫畨鍏ㄦ€у拰鎬ц兘銆?       DID:key 鏍煎紡灏嗗叕閽ョ洿鎺ョ紪鐮佷负鍘讳腑蹇冨寲韬唤锛屾棤闇€鍖哄潡閾炬垨涓績鍖栨敞鍐岃〃銆?
+      </p>
+    </div>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-box status-info hidden">
+      <span class="icon">鈩癸笍</span>
+      <span id="statusTextContent">灏辩华</span>
+    </div>
+
+    <!-- Generation Button (before generation) -->
+    <div id="generateSection">
+      <button class="btn btn-primary btn-lg btn-block" onclick="generateDID()">
+        鉁?鐢熸垚 DID 韬唤
+      </button>
+      <p class="mt-8" style="font-size:0.82rem;color:var(--text-muted);text-align:center;">
+        鐢熸垚鍚庡皢鑷姩淇濆瓨鍒版湰鍦?<code>~/.anima/did_private_key.json</code>
+      </p>
+    </div>
+
+    <!-- Generating State -->
+    <div id="generatingSection" class="hidden generating-overlay">
+      <div class="spinner"></div>
+      <p style="color:var(--text-dim);">姝ｅ湪鐢熸垚 Ed25519 瀵嗛挜瀵?..</p>
+    </div>
+
+    <!-- Result Section (after generation) -->
+    <div id="resultSection" class="result-section">
+      <div class="private-key-warning">
+        鈿狅笍 <strong>绉侀挜璀﹀憡</strong>锛氱閽ユ枃浠跺凡淇濆瓨鍦ㄦ湰鍦般€傝鍔″繀澶囦唤
+        <code style="color:var(--yellow);">.anima/did_private_key.json</code> 鍒板畨鍏ㄤ綅缃?
+        锛圢AS / U 鐩?/ 瀵嗙爜绠＄悊鍣級锛屼涪澶卞悗灏嗘棤娉曟仮澶嶏紒
+      </div>
+
+      <!-- DID Display -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">馃啍</div>
+          <h3>浣犵殑 DID</h3>
+        </div>
+        <div class="card-body">
+          <div class="did-display" id="didDisplay" onclick="copyDID()">
+            <span id="didValue"></span>
+            <span class="copy-hint">馃搵 鐐瑰嚮澶嶅埗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Public Key -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">馃攽</div>
+          <h3>鍏挜</h3>
+        </div>
+        <div class="card-body">
+          <p style="font-size:0.84rem;color:var(--text-dim);margin-bottom:8px;">
+            鍏挜鍙垎浜紝鐢ㄤ簬韬唤楠岃瘉鍜岀鍚嶉獙璇併€?
+          </p>
+          <div class="key-display" id="pubkeyDisplay"></div>
+        </div>
+      </div>
+
+      <!-- Timestamp -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">馃晲</div>
+          <h3>鍒涘缓鏃堕棿</h3>
+        </div>
+        <div class="card-body">
+          <p id="createdInfo" style="color:var(--text-dim);font-size:0.92rem;"></p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-gap mt-24" style="justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-success btn-lg" onclick="goNext()">
+          鉁?瀹屾垚锛岀户缁⒊鍩虹粦瀹?鈫?
+        </button>
+        <button class="btn btn-secondary" onclick="generateDID()">
+          馃攧 閲嶆柊鐢熸垚
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    async function generateDID() {
+      // Hide/show sections
+      document.getElementById('generateSection').classList.add('hidden');
+      document.getElementById('generatingSection').classList.remove('hidden');
+      document.getElementById('resultSection').classList.remove('visible');
+      document.getElementById('statusMessage').classList.add('hidden');
+
+      try {
+        const result = await window.stellarNyx.didGenerate();
+
+        if (!result.success) {
+          showStatus('error', `鉂?DID 鐢熸垚澶辫触: ${result.error}`);
+          document.getElementById('generateSection').classList.remove('hidden');
+          document.getElementById('generatingSection').classList.add('hidden');
+          return;
+        }
+
+        // Update state
+        StellarState.did = result.did;
+        StellarState.didGenerated = true;
+        StellarState.didCreated = result.created;
+        StellarState.publicKeyHex = result.publicKeyHex;
+        StellarState.log('success', `DID 宸茬敓鎴? ${result.did}`);
+
+        // Populate result
+        document.getElementById('didValue').textContent = result.did;
+        document.getElementById('pubkeyDisplay').textContent = result.publicKeyHex;
+        document.getElementById('createdInfo').textContent = new Date(result.created).toLocaleString('zh-CN');
+
+        // Show result
+        document.getElementById('generatingSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.add('visible');
+        
+        showStatus('success', `鉁?DID 鐢熸垚鎴愬姛锛乣);
+        updateNavStatus(true);
+
+        // Re-render steps
+        const pageIdx = StellarState.getActiveStepIndex('did_gen');
+        const completed = StellarState.getCompletedSteps();
+        StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+      } catch (err) {
+        showStatus('error', `鉂?鍙戠敓閿欒: ${err.message}`);
+        document.getElementById('generateSection').classList.remove('hidden');
+        document.getElementById('generatingSection').classList.add('hidden');
+      }
+    }
+
+    function copyDID() {
+      const did = document.getElementById('didValue').textContent;
+      navigator.clipboard.writeText(did).then(() => {
+        showStatus('success', '鉁?DID 宸插鍒跺埌鍓创鏉?);
+      }).catch(() => {
+        // Fallback: select text
+        const el = document.getElementById('didDisplay');
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+    }
+
+    function goNext() {
+      StellarNav.navigate('carbon_bind');
+    }
+
+    function showStatus(type, message) {
+      const box = document.getElementById('statusMessage');
+      const content = document.getElementById('statusTextContent');
+      box.className = `status-box status-${type}`;
+      content.textContent = message;
+      box.classList.remove('hidden');
+    }
+
+    function updateNavStatus(active) {
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      if (active) {
+        dot.className = 'dot live';
+        text.textContent = 'DID 宸叉敞鍐?;
+      }
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await StellarState.init();
+
+      const pageIdx = StellarState.getActiveStepIndex('did_gen');
+      const completed = StellarState.getCompletedSteps();
+      StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+      // If DID already exists, show result
+      if (StellarState.didGenerated) {
+        document.getElementById('generateSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.add('visible');
+        document.getElementById('didValue').textContent = StellarState.did;
+        document.getElementById('pubkeyDisplay').textContent = StellarState.publicKeyHex;
+        document.getElementById('createdInfo').textContent = StellarState.didCreated
+          ? new Date(StellarState.didCreated).toLocaleString('zh-CN')
+          : '-';
+        showStatus('success', '鉁?DID 宸插瓨鍦紝鍙互鐩存帴杩涘叆涓嬩竴姝?);
+        updateNavStatus(true);
+      }
+
+      // Update nav status dot based on overall state
+      if (StellarState.didGenerated) {
+        updateNavStatus(true);
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
+<!-- generated by Iris 2026-07-14 -->

@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 鈥?鎶€鑳?/title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+    .skill-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: var(--transition); }
+    .skill-card:hover { border-color: var(--accent); }
+    .skill-card .header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .skill-card .icon { font-size: 1.8rem; }
+    .skill-card .info { flex: 1; }
+    .skill-card .name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .skill-card .desc { font-size: 0.82rem; color: var(--text-dim); margin-top: 2px; }
+    .skill-card .toggle { position: relative; width: 44px; height: 24px; cursor: pointer; }
+    .skill-card .toggle input { opacity: 0; width: 0; height: 0; }
+    .skill-card .toggle .slider { position: absolute; inset: 0; background: var(--card2); border: 1px solid var(--border); border-radius: 12px; transition: var(--transition); }
+    .skill-card .toggle .slider::before { content: ''; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; background: var(--text-muted); border-radius: 50%; transition: var(--transition); }
+    .skill-card .toggle input:checked + .slider { background: var(--accent-dim); border-color: var(--accent); }
+    .skill-card .toggle input:checked + .slider::before { background: var(--accent); transform: translateX(20px); }
+    .skill-card .usage { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .skill-card .usage code { font-size: 0.8rem; color: var(--text-dim); }
+    .skill-details { margin-top: 24px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .skill-details h3 { font-size: 0.95rem; margin-bottom: 12px; }
+    .skill-details .example { background: var(--card2); padding: 12px; border-radius: var(--radius-xs); font-size: 0.84rem; color: var(--text-dim); line-height: 1.7; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a class="active">鎶€鑳?/a>
+      <a onclick="StellarNav.navigate('welcome')">璁剧疆</a>
+    </div>
+    <div class="nav-status">
+      <span class="dot live"></span>
+      <span id="statusText">鎶€鑳界鐞?/span>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      鎶€鑳界鐞?    </div>
+    <p class="page-desc">
+      绠＄悊 STELLAR NYX 鐨勫伐浣滃彴鎶€鑳姐€傚紑鍚殑鎶€鑳藉彲鍦ㄥ璇濅腑閫氳繃鐐瑰嚮鎶€鑳芥寜閽皟鐢ㄣ€?    </p>
+
+    <div class="skills-grid" id="skillsGrid"></div>
+
+    <!-- Usage Examples -->
+    <div class="skill-details">
+      <h3>馃摉 浣跨敤鏂瑰紡</h3>
+      <p style="color:var(--text-dim);font-size:0.84rem;line-height:1.6;margin-bottom:12px;">
+        鍦ㄥ璇濋〉闈紝鐐瑰嚮鎶€鑳芥爮涓殑鎸夐挳婵€娲绘妧鑳斤紝鐒跺悗鍙戦€佹秷鎭嵆鍙嚜鍔ㄨ皟鐢ㄣ€?br>
+        鎶€鑳界粨鏋滃皢浣滀负涓婁笅鏂囦紶閫掔粰 LLM锛屽府鍔╁畠鏇村噯纭湴鍥炵瓟銆?      </p>
+      <div class="example">馃捇 浠ｇ爜鎵ц锛氭縺娲诲悗鍙戦€佷换鎰?JS 浠ｇ爜锛屽 <span style="color:var(--accent)">Math.random().toString(36).slice(2, 8)</span>
+馃攳 Web 鎼滅储锛氭縺娲诲悗鍙戦€佹悳绱㈣瘝锛岀粨鏋滀細鑷姩娉ㄥ叆
+馃搧 鏂囦欢娴忚锛氭縺娲诲悗鍙戦€佺洰褰曡矾寰勶紝鍒楀嚭鏂囦欢鍒楄〃
+馃搵 鍓创鏉匡細婵€娲诲悗鍙戦€?"read" 璇诲彇鍓创鏉垮唴瀹?馃枼锔?缁堢锛氭縺娲诲悗鍙戦€?Shell 鍛戒护锛堚殸锔?璋ㄦ厧浣跨敤锛?/div>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await loadSkills();
+    }
+
+    async function loadSkills() {
+      try {
+        const result = await window.stellarNyx.skillsList();
+        if (result.success) {
+          const grid = document.getElementById('skillsGrid');
+          grid.innerHTML = result.skills.map(skill => `
+            <div class="skill-card">
+              <div class="header">
+                <span class="icon">${skill.icon}</span>
+                <div class="info">
+                  <div class="name">${skill.name}</div>
+                  <div class="desc">${skill.desc}</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" ${skill.enabled ? 'checked' : ''} onchange="toggleSkill('${skill.id}', this.checked)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="usage">
+                <code>${getUsage(skill.id)}</code>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        document.getElementById('skillsGrid').innerHTML = '<p style="color:var(--red);">鍔犺浇澶辫触: ' + e.message + '</p>';
+      }
+    }
+
+    function getUsage(skillId) {
+      const usages = {
+        code_exec: '鈿?杩愯 JavaScript 浠ｇ爜璇彞',
+        web_search: '馃寪 鎼滅储 web 鍐呭',
+        file_browse: '馃搨 娴忚鎸囧畾鐩綍缁撴瀯',
+        terminal: '鈿欙笍 鎵ц Shell 鍛戒护',
+        clipboard: '馃搵 璇诲彇/鍐欏叆鍓创鏉?
+      };
+      return usages[skillId] || '';
+    }
+
+    async function toggleSkill(skillId, enabled) {
+      try {
+        const result = await window.stellarNyx.skillsList();
+        if (result.success) {
+          const config = {};
+          result.skills.forEach(s => { config[s.id] = s.id === skillId ? enabled : s.enabled; });
+          await window.stellarNyx.skillsSaveConfig(config);
+        }
+      } catch (e) {
+        console.error('淇濆瓨鎶€鑳介厤缃け璐?', e.message);
+      }
+    }
+
+    initPage();
+  </script>
+  <!-- generated by Nyx 2026-07-14 -->
+</body>
+</html>

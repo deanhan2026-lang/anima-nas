@@ -1,0 +1,524 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 2.0 鈥?鎺у埗鍙?/title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color var(--transition);
+    }
+    .stat-card:hover { border-color: var(--border-light); }
+
+    .stat-card .stat-icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .stat-card .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .stat-card .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stat-card .stat-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .stat-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .trust-ring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .trust-ring .ring {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 6px solid var(--card2);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .trust-ring .ring .ring-fill {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 6px solid transparent;
+      border-top-color: var(--green);
+      border-right-color: var(--green);
+    }
+    .trust-ring .ring .ring-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--green);
+    }
+    .trust-ring .ring-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .trust-ring .ring-detail .td-label {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+    .trust-ring .ring-detail .td-value {
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .did-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .did-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .did-panel-header h3 {
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .log-panel {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      max-height: 320px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      line-height: 1.8;
+    }
+    .log-entry {
+      display: flex;
+      gap: 8px;
+      padding: 2px 0;
+    }
+    .log-entry .log-time { color: var(--text-muted); flex-shrink: 0; }
+    .log-entry .log-level { font-weight: 600; flex-shrink: 0; width: 48px; }
+    .log-level.info { color: var(--accent); }
+    .log-level.success { color: var(--green); }
+    .log-level.warn { color: var(--yellow); }
+    .log-level.error { color: var(--red); }
+    .log-entry .log-msg { color: var(--text-dim); }
+
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .node-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .node-detail-item {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .node-detail-item .nd-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .node-detail-item .nd-value {
+      font-size: 0.88rem;
+      color: var(--text);
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">娆㈣繋</a>
+      <a onclick="StellarNav.navigate('did_gen')">DID 娉ㄥ唽</a>
+      <a onclick="StellarNav.navigate('carbon_bind')">纰冲熀缁戝畾</a>
+      <a onclick="StellarNav.navigate('llm_config')">LLM 閰嶇疆</a>
+      <a onclick="StellarNav.navigate('persona_load')">浜烘牸鍔犺浇</a>
+      <a class="active">鎺у埗鍙?/a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a onclick="StellarNav.navigate('skills')">鎶€鑳?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot live" id="statusDot"></span>
+      <span id="statusText">鍦ㄧ嚎</span>
+    </div>
+  </nav>
+
+  <div class="nav-progress-bar">
+    <div class="fill" style="width:100%"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      馃枼 STELLAR NYX 鎺у埗鍙?
+    </div>
+
+    <!-- Quick Status -->
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="stat-icon">馃К</div>
+        <div class="stat-label">鑺傜偣鐘舵€?/div>
+        <div class="stat-value" id="nodeStatus" style="color:var(--green);">娲昏穬</div>
+        <div class="stat-sub" id="nodeSubStatus">ANIMA 缃戠粶鑺傜偣</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">馃啍</div>
+        <div class="stat-label">DID 鐘舵€?/div>
+        <div class="stat-value" id="didStatus">鉁?/div>
+        <div class="stat-sub" id="didSubStatus">绛夊緟鍔犺浇</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">馃敆</div>
+        <div class="stat-label">纰冲熀缁戝畾</div>
+        <div class="stat-value" id="carbonStatus">鉁?/div>
+        <div class="stat-sub" id="carbonSubStatus">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">馃К</div>
+        <div class="stat-label">浜烘牸</div>
+        <div class="stat-value" id="personaStatus">鉁?/div>
+        <div class="stat-sub" id="personaSubStatus">-</div>
+      </div>
+    </div>
+
+    <!-- Trust Score -->
+    <div class="card mb-16">
+      <div class="card-header">
+        <div class="card-icon">馃幆</div>
+        <h3>淇′换鍒?/h3>
+      </div>
+      <div class="card-body">
+        <div class="trust-ring">
+          <div class="ring">
+            <div class="ring-fill" id="trustRingFill"></div>
+            <div class="ring-value" id="trustValue">0.0</div>
+          </div>
+          <div class="ring-detail">
+            <div>
+              <span class="td-label">鍩虹淇′换</span>
+              <span class="td-value" id="baseTrust">0.0</span>
+            </div>
+            <div>
+              <span class="td-label">纰冲熀鎷呬繚</span>
+              <span class="td-value" id="carbonTrust">0.0</span>
+            </div>
+            <div>
+              <span class="td-label">鍗忎綔鍔犳垚</span>
+              <span class="td-value" id="collabTrust">0.0</span>
+            </div>
+            <div>
+              <span class="td-label">鍦ㄧ嚎鏃堕暱</span>
+              <span class="td-value" id="onlineTrust">0.0</span>
+            </div>
+            <div>
+              <span class="td-label" style="display:flex;align-items:center;gap:4px;">
+                鎷呬繚绾у埆
+                <span class="badge badge-completed" id="guardianLevelBadge">鏈煡</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DID Panel -->
+    <div class="did-panel">
+      <div class="did-panel-header">
+        <h3>馃啍 鑺傜偣韬唤</h3>
+        <div class="badge badge-active" id="activeBadge">娲昏穬</div>
+      </div>
+      <div class="node-detail-grid" id="nodeDetails">
+        <div class="node-detail-item">
+          <div class="nd-label">鑺傜偣 ID</div>
+          <div class="nd-value" id="ndNodeId">-</div>
+        </div>
+        <div class="node-detail-item">
+          <div class="nd-label">DID</div>
+          <div class="nd-value" id="ndDid" style="font-family:monospace;font-size:0.78rem;">-</div>
+        </div>
+        <div class="node-detail-item">
+          <div class="nd-label">娉ㄥ唽鏃堕棿</div>
+          <div class="nd-value" id="ndRegisteredAt">-</div>
+        </div>
+        <div class="node-detail-item">
+          <div class="nd-label">鍏挜 (Hex)</div>
+          <div class="nd-value" id="ndPubkey" style="font-family:monospace;font-size:0.78rem;">-</div>
+        </div>
+        <div class="node-detail-item">
+          <div class="nd-label">绛惧悕绠楁硶</div>
+          <div class="nd-value">Ed25519</div>
+        </div>
+        <div class="node-detail-item">
+          <div class="nd-label">DID 鏂规硶</div>
+          <div class="nd-value">did:key</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="btn btn-primary btn-sm" onclick="refreshAll()">馃攧 鍒锋柊</button>
+      <button class="btn btn-secondary btn-sm" onclick="copyNodeInfo()">馃搵 澶嶅埗鑺傜偣淇℃伅</button>
+      <button class="btn btn-ghost btn-sm" onclick="openAnimaLink()">馃寪 ANIMA Link</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto;color:var(--red);" onclick="resetAndRestart()">
+        馃攧 閲嶆柊璁剧疆
+      </button>
+    </div>
+
+    <!-- Operation Log -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">馃摑</div>
+        <h3>鎿嶄綔鏃ュ織</h3>
+      </div>
+      <div class="card-body">
+        <div class="log-panel" id="logPanel">
+          <div class="log-entry">
+            <span class="log-time">--:--:--</span>
+            <span class="log-level info">INFO</span>
+            <span class="log-msg">绛夊緟鍔犺浇鏃ュ織...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer info -->
+    <div class="mt-24" style="text-align:center;font-size:0.8rem;color:var(--text-muted);">
+      STELLAR NYX 2.0 路 ANIMA OS 路 鏁版嵁鏈湴瀛樺偍 路 绉侀挜姘镐笉绂昏澶?
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    let refreshInterval = null;
+
+    async function refreshAll() {
+      await StellarState.init();
+      updateDashboard();
+      renderLogs();
+    }
+
+    function updateDashboard() {
+      // Status stats
+      document.getElementById('nodeStatus').textContent = 
+        StellarState.identityRegistered ? '娲昏穬' : '鏈敞鍐?;
+      document.getElementById('nodeStatus').style.color = 
+        StellarState.identityRegistered ? 'var(--green)' : 'var(--yellow)';
+      document.getElementById('nodeSubStatus').textContent = 
+        StellarState.identityRegistered ? `鑺傜偣ID: ${StellarState.nodeId || '-'}` : '璇峰畬鎴愯缃?;
+
+      document.getElementById('didStatus').textContent = 
+        StellarState.didGenerated ? '鉁?宸茬敓鎴? : '鉂?鏈敓鎴?;
+      document.getElementById('didSubStatus').textContent = 
+        StellarState.did ? StellarState.did.substring(0, 16) + '...' : '-';
+
+      document.getElementById('carbonStatus').textContent = 
+        StellarState.carbonBound ? '鉁?宸茬粦瀹? : '鈴?璺宠繃';
+      document.getElementById('carbonSubStatus').textContent = 
+        StellarState.carbonBound ? '淇′换鍒?+0.5' : '淇′换鍒?0.0';
+
+      document.getElementById('personaStatus').textContent = 
+        StellarState.personaLoaded ? '鉁?宸插姞杞? : '鉂?鏈姞杞?;
+      document.getElementById('personaSubStatus').textContent = 
+        StellarState.personaName || '-';
+
+      // Trust score
+      const baseTrust = 0.0;
+      const carbonTrust = StellarState.carbonBound ? 0.5 : 0.0;
+      const collabTrust = 0.0; // For future use
+      const onlineTrust = 0.0; // For future use
+      const totalTrust = Math.min(baseTrust + carbonTrust + collabTrust + onlineTrust, 1.0);
+
+      document.getElementById('trustValue').textContent = totalTrust.toFixed(2);
+      document.getElementById('baseTrust').textContent = baseTrust.toFixed(1);
+      document.getElementById('carbonTrust').textContent = carbonTrust.toFixed(1);
+      document.getElementById('collabTrust').textContent = collabTrust.toFixed(1);
+      document.getElementById('onlineTrust').textContent = onlineTrust.toFixed(1);
+
+      // Trust ring fill (conic gradient)
+      const fillDegree = totalTrust * 180; // Max 180 deg in ring
+      document.getElementById('trustRingFill').style.cssText = 
+        `border-top-color: var(--green); border-right-color: var(--green);`;
+
+      // Guardian level badge
+      const badge = document.getElementById('guardianLevelBadge');
+      if (StellarState.carbonBound) {
+        badge.className = 'badge badge-completed';
+        badge.textContent = 'owner';
+      } else {
+        badge.className = 'badge badge-offline';
+        badge.textContent = '鏃犳媴淇?;
+      }
+
+      // Node details
+      document.getElementById('ndNodeId').textContent = StellarState.nodeId || '-';
+      document.getElementById('ndDid').textContent = StellarState.did || '-';
+      document.getElementById('ndRegisteredAt').textContent = 
+        StellarState.registeredAt 
+          ? new Date(StellarState.registeredAt).toLocaleString('zh-CN')
+          : StellarState.didCreated
+            ? new Date(StellarState.didCreated).toLocaleString('zh-CN')
+            : '-';
+      document.getElementById('ndPubkey').textContent = StellarState.publicKeyHex || '-';
+
+      // Active badge
+      const activeBadge = document.getElementById('activeBadge');
+      if (StellarState.identityRegistered) {
+        activeBadge.className = 'badge badge-active';
+        activeBadge.textContent = '鉁?宸叉敞鍐?;
+      } else if (StellarState.didGenerated) {
+        activeBadge.className = 'badge badge-pending';
+        activeBadge.textContent = '寰呮敞鍐?;
+      } else {
+        activeBadge.className = 'badge badge-offline';
+        activeBadge.textContent = '鏈缃?;
+      }
+
+      // Nav status
+      document.getElementById('statusDot').className = 
+        StellarState.identityRegistered ? 'dot live' : 'dot';
+      document.getElementById('statusText').textContent = 
+        StellarState.identityRegistered ? '鍦ㄧ嚎' : '绂荤嚎';
+    }
+
+    function renderLogs() {
+      const panel = document.getElementById('logPanel');
+      const logs = StellarState._logs;
+
+      if (logs.length === 0) {
+        panel.innerHTML = `
+          <div class="log-entry">
+            <span class="log-time">--:--:--</span>
+            <span class="log-level info">INFO</span>
+            <span class="log-msg">鏃犳搷浣滆褰?/span>
+          </div>
+        `;
+        return;
+      }
+
+      panel.innerHTML = logs.map(entry => `
+        <div class="log-entry">
+          <span class="log-time">${entry.time}</span>
+          <span class="log-level ${entry.level}">${entry.level.toUpperCase()}</span>
+          <span class="log-msg">${entry.message}</span>
+        </div>
+      `).join('');
+
+      // Auto-scroll to bottom
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    function copyNodeInfo() {
+      const info = {
+        app: 'STELLAR NYX 2.0',
+        did: StellarState.did || '-',
+        nodeId: StellarState.nodeId || '-',
+        publicKeyHex: StellarState.publicKeyHex || '-',
+        carbonBound: StellarState.carbonBound,
+        trustSeed: StellarState.trustSeed || 0,
+        personaLoaded: StellarState.personaLoaded,
+        personaName: StellarState.personaName || '-',
+        platform: navigator.platform
+      };
+
+      const text = JSON.stringify(info, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        StellarState.log('success', '鑺傜偣淇℃伅宸插鍒跺埌鍓创鏉?);
+        renderLogs();
+      }).catch(() => {
+        StellarState.log('warn', '澶嶅埗澶辫触锛堝壀璐存澘鏉冮檺锛?);
+        renderLogs();
+      });
+    }
+
+    function openAnimaLink() {
+      window.stellarNyx.openExternal('http://127.0.0.1:5050/');
+    }
+
+    async function resetAndRestart() {
+      if (!confirm('纭畾瑕侀噸缃墍鏈夎缃紝閲嶆柊寮€濮嬪悧锛焅n锛圖ID 绉侀挜鏂囦欢灏嗕繚鐣欏湪 .anima 鐩綍涓級')) {
+        return;
+      }
+      StellarState.reset();
+      
+      // Add a reset log
+      StellarState.log('info', '鐢ㄦ埛璇锋眰閲嶆柊璁剧疆锛屾鍦ㄨ烦杞埌娆㈣繋椤?..');
+      renderLogs();
+
+      setTimeout(() => {
+        StellarNav.navigate('welcome');
+      }, 1000);
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await StellarState.init();
+      updateDashboard();
+      renderLogs();
+
+      // Add initial logs
+      if (StellarState._logs.length === 0) {
+        StellarState.log('info', 'STELLAR NYX 鎺у埗鍙板凡鍔犺浇');
+        if (StellarState.identityRegistered) {
+          StellarState.log('success', `鑺傜偣宸叉敞鍐? ${StellarState.nodeId}`);
+        }
+        renderLogs();
+      }
+
+      // Set up auto-refresh (every 30s)
+      refreshInterval = setInterval(refreshAll, 30000);
+    }
+
+    // Clean up interval on page leave
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    });
+
+    initPage();
+  </script>
+</body>
+</html>
+<!-- generated by Iris 2026-07-14 -->

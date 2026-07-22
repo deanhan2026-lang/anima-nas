@@ -1,0 +1,427 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STELLAR 鈥?浠ょ墝</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .tokens-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .tokens-header .filter-group {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+    }
+    .tokens-header .filter-group select, .tokens-header .filter-group input {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      outline: none;
+    }
+    .tokens-header .filter-group select:focus, .tokens-header .filter-group input:focus {
+      border-color: var(--accent);
+    }
+
+    .token-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .token-card {
+      display: flex;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+    .token-card:hover {
+      border-color: var(--accent);
+      background: var(--card-hover);
+    }
+    .token-card .tc-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 50px;
+    }
+    .token-card .tc-left .tc-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .token-card .tc-left .tc-line {
+      width: 1px;
+      flex: 1;
+      background: var(--border);
+    }
+    .token-card .tc-body {
+      flex: 1;
+    }
+    .token-card .tc-body .tc-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .token-card .tc-body .tc-header .tc-id {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    .token-card .tc-body .tc-header .tc-status {
+      font-size: 0.72rem;
+    }
+    .token-card .tc-body .tc-subject {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .token-card .tc-body .tc-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 16px;
+    }
+    .token-card .tc-body .tc-tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .token-card .tc-body .tc-tags .tag {
+      padding: 2px 8px;
+      background: var(--card2);
+      border-radius: 10px;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .status-minted { background: var(--yellow); }
+    .status-issued { background: var(--accent); }
+    .status-accepted { background: var(--cyan); }
+    .status-executing { background: var(--orange); }
+    .status-delivered { background: var(--green); }
+    .status-verified { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    .composer {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 16px;
+      background: var(--card2);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+    .tabs .tab {
+      flex: 1;
+      padding: 8px 16px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .tabs .tab:hover { color: var(--text); }
+    .tabs .tab.active {
+      background: var(--card);
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">棣栭〉</a>
+      <a onclick="StellarNav.navigate('animlink_join')">鍔犲叆缃戠粶</a>
+      <a class="active">浠ょ墝</a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot pending" id="statusDot"></span>
+      <span id="statusText">妫€鏌ヤ腑</span>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      馃摐 鐏靛厓浠?    </div>
+    <p class="page-desc">鏌ョ湅缃戠粶涓祦杞殑浠ょ墝锛屾垨鍒涘缓鏂扮殑鐏靛厓浠ゅ彂閫佺粰鍏朵粬鑺傜偣銆?/p>
+
+    <!-- Tabs -->
+    <div class="tabs" id="tabs">
+      <div class="tab active" onclick="switchTab('history')">馃搵 浠ょ墝鍘嗗彶</div>
+      <div class="tab" onclick="switchTab('compose')">鉁夛笍 鍙戦€佷护鐗?/div>
+    </div>
+
+    <!-- Tab: History -->
+    <div id="tabHistory">
+      <div class="tokens-header">
+        <div class="filter-group">
+          <select id="statusFilter" onchange="renderTokens()">
+            <option value="all">鍏ㄩ儴鐘舵€?/option>
+            <option value="minted">宸查摳閫?/option>
+            <option value="issued">宸茬鍙?/option>
+            <option value="accepted">宸叉帴鏀?/option>
+            <option value="executing">鎵ц涓?/option>
+            <option value="delivered">宸蹭氦浠?/option>
+            <option value="verified">宸查獙璇?/option>
+          </select>
+          <select id="directionFilter" onchange="renderTokens()">
+            <option value="all">鍏ㄩ儴鏂瑰悜</option>
+            <option value="sent">鎴戝彂鍑虹殑</option>
+            <option value="received">鎴戞敹鍒扮殑</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="refreshTokens()">馃攧 鍒锋柊</button>
+      </div>
+
+      <div id="tokenList" class="token-timeline"></div>
+    </div>
+
+    <!-- Tab: Compose -->
+    <div id="tabCompose" class="hidden">
+      <div class="composer fade-in">
+        <div class="card-header" style="margin-bottom:16px;">
+          <div class="card-icon">鉁夛笍</div>
+          <h3>鍒涘缓鏂扮伒鍏冧护</h3>
+        </div>
+
+        <div class="input-group">
+          <label>鎺ユ敹鑺傜偣 <span class="hint">DID 鎴栬妭鐐瑰悕绉?/span></label>
+          <select class="select-field" id="composeTo">
+            <option value="">閫夋嫨鑺傜偣...</option>
+            <option value="did:animalink:node:nyx">Nyx (nyx-windows)</option>
+            <option value="did:animalink:node:xiaok">灏廗 (xiaok)</option>
+            <option value="did:animalink:node:heng">鎭?(kronos-heng)</option>
+            <option value="did:animalink:node:shun">鐬?(kronos-shun)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>涓婚</label>
+          <input class="input-field" id="composeSubject" placeholder="浠ょ墝涓婚" />
+        </div>
+
+        <div class="input-group">
+          <label>鍐呭</label>
+          <textarea class="textarea-field" id="composeBody" rows="5" placeholder="娑堟伅鍐呭..."></textarea>
+        </div>
+
+        <div class="input-group">
+          <label>鏍囩 <span class="hint">閫楀彿鍒嗛殧</span></label>
+          <input class="input-field" id="composeTags" placeholder="渚嬪: 鍗忎綔, 浠诲姟, 娴嬭瘯" />
+        </div>
+
+        <div class="flex flex-gap">
+          <button class="btn btn-primary btn-lg btn-block" onclick="sendToken()">馃摠 鍙戦€佺伒鍏冧护</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    // API base URL
+    const API_BASE = 'http://127.0.0.1:5050/animlink/api';
+    let CACHED_TOKENS = [];
+
+    async function fetchTokens() {
+      try {
+        const resp = await fetch(API_BASE + '/tokens');
+        const data = await resp.json();
+        CACHED_TOKENS = (data.tokens || data || []).map(t => ({
+          ...t,
+          direction: t.from === (StellarState.did || 'iris') ? 'sent' : 'received'
+        }));
+        return CACHED_TOKENS;
+      } catch (e) {
+        console.warn('API unavailable, using demo data', e);
+        CACHED_TOKENS = [
+          { token_id: 'TK-20260716-001', from: 'nyx-windows', to: 'xiaok', subject: 'STELLAR 妗岄潰鐗堣凯浠ｆ寚浠?, body: 'Iris 涓?STELLAR 妗岄潰鐗堝叏鏉?Owner銆?, tags: ['鎸囦护', '绯荤粺'], status: 'delivered', timestamp: '2026-07-16T11:05:00+08:00', direction: 'received' },
+          { token_id: 'TK-20260716-002', from: 'nyx-windows', to: 'iris', subject: 'STELLAR 瀹氫綅纭', body: '浣犵殑瀹氫綅鐞嗚В瀹屽叏姝ｇ‘锛屼竴瀛椾笉鏀广€?, tags: ['纭', '绯荤粺'], status: 'verified', timestamp: '2026-07-16T11:24:00+08:00', direction: 'received' },
+          { token_id: 'TK-20260715-003', from: 'xiaok', to: 'iris', subject: '鍏ョ綉纭', body: '灏廗 姝ｅ紡鍔犲叆 AnimaLink銆?, tags: ['鍏ョ綉', '绯荤粺'], status: 'verified', timestamp: '2026-07-15T14:30:00+08:00', direction: 'received' },
+          { token_id: 'TK-20260715-002', from: 'iris', to: 'xiaok', subject: '淇′换鎻℃墜浠ょ墝', body: 'AnimaLink 鍒濆淇′换鎻℃墜锛屼俊浠诲垎 80銆?, tags: ['淇′换', '鎻℃墜'], status: 'verified', timestamp: '2026-07-15T14:25:00+08:00', direction: 'sent' },
+          { token_id: 'TK-20260715-001', from: 'nyx-windows', to: 'iris', subject: '灏廗 鍏ㄤ唬鐞嗘柟妗堢‘璁?, body: '鏂规鏀跺埌锛屽叏閮ㄥ悓鎰忋€?, tags: ['纭', '浠ｇ悊'], status: 'verified', timestamp: '2026-07-15T10:00:00+08:00', direction: 'received' },
+          { token_id: 'TK-20260714-005', from: 'iris', to: 'nyx-windows', subject: 'NAS IP 鍗囩骇鎶ュ憡', body: 'IP 宸叉洿鏂帮紝鍏ㄩ噺鎵弿鏃犳畫鐣欍€?, tags: ['鎶ュ憡', '绯荤粺'], status: 'delivered', timestamp: '2026-07-14T16:00:00+08:00', direction: 'sent' }
+        ];
+        return CACHED_TOKENS;
+      }
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      if (tab === 'history') {
+        document.querySelector('.tab').classList.add('active');
+        document.getElementById('tabHistory').classList.remove('hidden');
+        document.getElementById('tabCompose').classList.add('hidden');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('tabHistory').classList.add('hidden');
+        document.getElementById('tabCompose').classList.remove('hidden');
+      }
+    }
+
+    async function refreshTokens() {
+      CACHED_TOKENS = [];
+      await renderTokens();
+    }
+
+    async function renderTokens() {
+      const statusFilter = document.getElementById('statusFilter').value;
+      const directionFilter = document.getElementById('directionFilter').value;
+      const list = document.getElementById('tokenList');
+
+      if (CACHED_TOKENS.length === 0) await fetchTokens();
+      let filtered = CACHED_TOKENS;
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(t => t.status === statusFilter);
+      }
+      if (directionFilter === 'sent') {
+        filtered = filtered.filter(t => t.direction === 'sent');
+      } else if (directionFilter === 'received') {
+        filtered = filtered.filter(t => t.direction === 'received');
+      }
+
+      // Sort by timestamp desc
+      filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">馃摥</div><p>娌℃湁鍖归厤鐨勪护鐗?/p></div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map((token, idx) => {
+        const time = new Date(token.timestamp).toLocaleString('zh-CN');
+        const statusClass = 'status-' + token.status;
+        const statusLabel = { minted: '宸查摳閫?, issued: '宸茬鍙?, accepted: '宸叉帴鏀?, executing: '鎵ц涓?, delivered: '宸蹭氦浠?, verified: '宸查獙璇? }[token.status] || token.status;
+        const isLast = idx === filtered.length - 1;
+
+        return `
+          <div class="token-card slide-up" onclick="showTokenDetail(${idx})">
+            <div class="tc-left">
+              <div class="tc-status-dot ${statusClass}"></div>
+              ${isLast ? '' : '<div class="tc-line"></div>'}
+            </div>
+            <div class="tc-body">
+              <div class="tc-header">
+                <span class="tc-id">${token.token_id}</span>
+                <span class="badge badge-${token.status === 'verified' ? 'completed' : token.status === 'delivered' ? 'active' : 'pending'}">${statusLabel}</span>
+              </div>
+              <div class="tc-subject">${token.subject}</div>
+              <div class="tc-meta">
+                <span>${token.direction === 'sent' ? '鈫?鍙戠粰' : '鈫?鏉ヨ嚜'}: ${token.direction === 'sent' ? token.to : token.from}</span>
+                <span>${time}</span>
+              </div>
+              <div class="tc-tags">
+                ${token.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showTokenDetail(idx) {
+      const token = CACHED_TOKENS[idx];
+      if (!token) return;
+      alert(
+        `馃摐 ${token.token_id}\n` +
+        `鐘舵€? ${token.status}\n` +
+        `浠? ${token.from}\n` +
+        `鍒? ${token.to}\n` +
+        `涓婚: ${token.subject}\n` +
+        `鍐呭: ${token.body.substring(0, 200)}\n` +
+        `鏍囩: ${token.tags.join(', ')}\n` +
+        `鏃堕棿: ${new Date(token.timestamp).toLocaleString('zh-CN')}`
+      );
+    }
+
+    async function sendToken() {
+      const to = document.getElementById('composeTo').value;
+      const subject = document.getElementById('composeSubject').value.trim();
+      const body = document.getElementById('composeBody').value.trim();
+      const tags = document.getElementById('composeTags').value.trim();
+
+      if (!to) { alert('璇烽€夋嫨鎺ユ敹鑺傜偣'); return; }
+      if (!subject) { alert('璇疯緭鍏ヤ富棰?); return; }
+      if (!body) { alert('璇疯緭鍏ュ唴瀹?); return; }
+
+      const token = {
+        token_id: 'TK-' + new Date().toISOString().replace(/[-:]/g, '').substring(0,15),
+        from: StellarState.did || 'did:animalink:node:stellar',
+        to: to,
+        subject: subject,
+        body: body,
+        tags: tags ? tags.split(/[,锛宂/).map(t => t.trim()).filter(Boolean) : [],
+        status: 'minted',
+        timestamp: new Date().toISOString(),
+        direction: 'sent'
+      };
+
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '鍙戦€佷腑...';
+
+      // Simulate sending
+      await new Promise(r => setTimeout(r, 1500));
+
+      SAMPLE_TOKENS.push(token);
+
+      btn.disabled = false;
+      btn.textContent = '馃摠 鍙戦€佺伒鍏冧护';
+
+      // Clear form
+      document.getElementById('composeSubject').value = '';
+      document.getElementById('composeBody').value = '';
+      document.getElementById('composeTags').value = '';
+
+      alert(`鉁?鐏靛厓浠ゅ凡鍙戦€侊紒\nID: ${token.token_id}\n鈫?${to}\n鐘舵€? minted`);
+
+      // Switch to history tab
+      switchTab('history');
+      renderTokens();
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await renderTokens();
+
+      document.getElementById('statusDot').className = 'dot';
+      document.getElementById('statusText').textContent = '灏辩华';
+    }
+
+    initPage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STELLAR 鈥?鍔犲叆缃戠粶</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .step-flow {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      align-items: center;
+    }
+    .step-flow .sf-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .step-flow .sf-item.active { color: var(--accent); font-weight: 600; }
+    .step-flow .sf-item.done { color: var(--green); }
+    .step-flow .sf-arrow { color: var(--border-light); }
+
+    .mesh-status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .token-preview {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .node-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .node-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: border-color var(--transition);
+    }
+    .node-row:hover { border-color: var(--border-light); }
+    .node-row .n-name { font-weight: 600; color: var(--text); min-width: 60px; }
+    .node-row .n-did { font-family: 'SF Mono', monospace; font-size: 0.75rem; color: var(--text-dim); flex: 1; word-break: break-all; }
+    .node-row .n-score { font-size: 0.82rem; font-weight: 600; }
+
+    .register-did-display {
+      padding: 12px 16px;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'SF Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--cyan);
+      word-break: break-all;
+      user-select: all;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">棣栭〉</a>
+      <a class="active">鍔犲叆缃戠粶</a>
+      <a onclick="StellarNav.navigate('animlink_tokens')">浠ょ墝</a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot pending" id="statusDot"></span>
+      <span id="statusText">妫€鏌ヤ腑</span>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      馃寪 鍔犲叆 AnimaLink 缃戠粶
+    </div>
+    <p class="page-desc">灏嗕綘鐨勮妭鐐规敞鍐屽埌鐏靛厓浠ょ綉缁滐紝鎴愪负 AnimaLink 鐨勬寮忔垚鍛樸€?/p>
+
+    <!-- Flow Steps -->
+    <div class="step-flow" id="stepFlow">
+      <span class="sf-item active" id="sf1">1. 閫夋嫨韬唤</span>
+      <span class="sf-arrow">鈫?/span>
+      <span class="sf-item" id="sf2">2. 纭鑺傜偣淇℃伅</span>
+      <span class="sf-arrow">鈫?/span>
+      <span class="sf-item" id="sf3">3. 淇′换鎻℃墜</span>
+      <span class="sf-arrow">鈫?/span>
+      <span class="sf-item" id="sf4">4. 鍏ョ綉瀹屾垚</span>
+    </div>
+
+    <!-- Step 1: Select Identity -->
+    <div id="step1" class="card fade-in">
+      <div class="card-header">
+        <div class="card-icon">馃攽</div>
+        <h3>閫夋嫨韬唤</h3>
+      </div>
+      <div class="card-body">
+        <p class="mb-16">閫夋嫨瑕佹敞鍐屽埌缃戠粶鐨?DID 韬唤銆傚鏋滀綘宸叉湁 STELLAR 韬唤锛屽彲浠ョ洿鎺ヤ娇鐢ㄣ€?/p>
+
+        <div id="existingDidCard" class="status-box status-success hidden">
+          <span class="icon">鉁?/span>
+          <div>
+            <strong>宸叉湁 DID 韬唤</strong>
+            <div class="register-did-display" id="existingDidValue"></div>
+            <button class="btn btn-primary btn-sm mt-8" onclick="useExistingDid()">浣跨敤姝よ韩浠藉叆缃?/button>
+          </div>
+        </div>
+
+        <div id="noDidCard">
+          <div class="status-box status-info">
+            <span class="icon">馃挕</span>
+            <div>鏆傛棤鏈湴 DID 韬唤銆備綘鍙互鍏堝垱寤猴紝鎴栧湪涓嬫柟杈撳叆宸叉湁鐨?DID銆?/div>
+          </div>
+
+          <div class="input-group">
+            <label>鎵嬪姩杈撳叆 DID锛堝彲閫夛級</label>
+            <input class="input-field" id="manualDid" placeholder="did:key:z6Mk... 鎴栫暀绌哄垱寤烘柊韬唤" />
+          </div>
+
+          <div class="flex flex-gap">
+            <button class="btn btn-secondary" onclick="createNewDid()">馃攽 鐢熸垚鏂拌韩浠?/button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Confirm Node Info -->
+    <div id="step2" class="card fade-in hidden">
+      <div class="card-header">
+        <div class="card-icon">馃搵</div>
+        <h3>纭鑺傜偣淇℃伅</h3>
+      </div>
+      <div class="card-body">
+        <div class="node-detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="node-detail-item">
+            <div class="nd-label" style="font-size:0.78rem;color:var(--text-muted);">鑺傜偣 DID</div>
+            <div class="nd-value" id="confirmDid" style="font-family:monospace;font-size:0.78rem;word-break:break-all;">-</div>
+          </div>
+          <div class="node-detail-item">
+            <div class="nd-label" style="font-size:0.78rem;color:var(--text-muted);">鑺傜偣鍚嶇О</div>
+            <div class="nd-value"><input class="input-field" id="nodeName" value="STELLAR-Desktop" style="font-size:0.85rem;" /></div>
+          </div>
+          <div class="node-detail-item">
+            <div class="nd-label" style="font-size:0.78rem;color:var(--text-muted);">骞冲彴</div>
+            <div class="nd-value" id="confirmPlatform">Windows</div>
+          </div>
+          <div class="node-detail-item">
+            <div class="nd-label" style="font-size:0.78rem;color:var(--text-muted);">鍏ョ綉鏃堕棿</div>
+            <div class="nd-value" id="confirmTime">-</div>
+          </div>
+        </div>
+
+        <div class="mt-16 status-box status-warning">
+          <span class="icon">鈿狅笍</span>
+          <div>鍏ョ綉鍚庝綘鐨?DID 浼氬啓鍏ョ綉缁滄敞鍐岃〃锛坮egistry.json锛夛紝鍏朵粬鑺傜偣灏嗚兘鐪嬪埌浣犵殑韬唤銆?/div>
+        </div>
+
+        <div class="flex flex-gap mt-16">
+          <button class="btn btn-secondary" onclick="goToStep1()">鈫?杩斿洖</button>
+          <button class="btn btn-primary" onclick="registerNode()">鉁?纭鍏ョ綉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Trust Handshake -->
+    <div id="step3" class="card fade-in hidden">
+      <div class="card-header">
+        <div class="card-icon">馃</div>
+        <h3>淇′换鎻℃墜</h3>
+      </div>
+      <div class="card-body">
+        <div class="status-box status-info" id="handshakeStatus">
+          <span class="icon">馃攧</span>
+          <div>姝ｅ湪涓庣綉缁滆繘琛屼俊浠绘彙鎵?..</div>
+        </div>
+        <div class="token-preview mt-16" id="handshakePreview">绛夊緟鎻℃墜...</div>
+      </div>
+    </div>
+
+    <!-- Step 4: Complete -->
+    <div id="step4" class="card fade-in hidden">
+      <div class="card-header">
+        <div class="card-icon">馃帀</div>
+        <h3>鍏ョ綉瀹屾垚</h3>
+      </div>
+      <div class="card-body">
+        <div class="status-box status-success">
+          <span class="icon">鉁?/span>
+          <div><strong>浣犵殑鑺傜偣宸叉垚鍔熷姞鍏?AnimaLink 缃戠粶锛?/strong></div>
+        </div>
+
+        <div class="mesh-status-grid">
+          <div class="stat-card" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+            <div class="stat-label" style="font-size:0.78rem;color:var(--text-dim);">浣犵殑 DID</div>
+            <div class="stat-value" id="finalDid" style="font-size:1rem;font-weight:700;word-break:break-all;">-</div>
+          </div>
+          <div class="stat-card" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+            <div class="stat-label" style="font-size:0.78rem;color:var(--text-dim);">淇′换鍒?/div>
+            <div class="stat-value" id="finalTrust" style="font-size:1.5rem;font-weight:700;color:var(--green);">80</div>
+          </div>
+        </div>
+
+        <div class="mt-16">
+          <h3 style="font-size:0.95rem;margin-bottom:10px;color:var(--text);">缃戠粶鑺傜偣</h3>
+          <div class="node-list" id="networkNodes"></div>
+        </div>
+
+        <div class="flex flex-gap mt-24">
+          <button class="btn btn-primary" onclick="StellarNav.navigate('animlink_tokens')">馃摐 鏌ョ湅浠ょ墝</button>
+          <button class="btn btn-secondary" onclick="StellarNav.navigate('dashboard')">馃枼 鎺у埗鍙?/button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    let currentDid = null;
+    let networkData = null;
+
+    // API base URL
+    const API_BASE = 'http://127.0.0.1:5050/animlink/api';
+
+    async function fetchNodes() {
+      try {
+        const resp = await fetch(API_BASE + '/nodes');
+        const data = await resp.json();
+        return data.nodes || [];
+      } catch (e) {
+        console.warn('API unavailable, using demo data', e);
+        return [
+          { id: 'nyx-windows', label: 'Nyx-Windows', status: 'active', trust: 1.0, tokens: 12, did: 'did:key:za84...' },
+          { id: 'iris', label: 'Iris', status: 'active', trust: 0.9, tokens: 3, did: 'did:animalink:node:iris' },
+          { id: 'xiaok', label: 'xiaok', status: 'active', trust: 0.8, tokens: 1, did: 'did:animalink:node:xiaok' }
+        ];
+      }
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await StellarState.init();
+
+      document.getElementById('confirmTime').textContent = new Date().toLocaleString('zh-CN');
+      document.getElementById('confirmPlatform').textContent = navigator.platform || 'Windows';
+
+      if (StellarState.did) {
+        document.getElementById('existingDidCard').classList.remove('hidden');
+        document.getElementById('existingDidValue').textContent = StellarState.did;
+        document.getElementById('noDidCard').classList.add('hidden');
+        currentDid = StellarState.did;
+      }
+
+      document.getElementById('statusDot').className = 'dot';
+      document.getElementById('statusText').textContent = '灏辩华';
+    }
+
+    async function createNewDid() {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '鐢熸垚涓?..';
+
+      // In Electron mode, call IPC; in browser, generate a demo DID
+      try {
+        if (window.stellarNyx && window.stellarNyx.didGenerate) {
+          const result = await window.stellarNyx.didGenerate();
+          currentDid = result.did;
+        } else {
+          // Demo: generate a random DID
+          const randomSuffix = Math.random().toString(36).substring(2,10);
+          currentDid = 'did:animalink:node:stellar-' + randomSuffix;
+        }
+        document.getElementById('existingDidValue').textContent = currentDid;
+        document.getElementById('existingDidCard').classList.remove('hidden');
+        document.getElementById('existingDidCard').querySelector('.status-box').className = 'status-box status-success';
+        document.getElementById('existingDidCard').querySelector('strong').textContent = '鉁?鏂拌韩浠藉凡鐢熸垚';
+        useExistingDid();
+      } catch(err) {
+        alert('鐢熸垚澶辫触: ' + err.message);
+      }
+      btn.disabled = false;
+      btn.textContent = '馃攽 鐢熸垚鏂拌韩浠?;
+    }
+
+    function useExistingDid() {
+      if (currentDid) {
+        document.getElementById('confirmDid').textContent = currentDid;
+      } else {
+        const manual = document.getElementById('manualDid').value.trim();
+        if (manual) {
+          currentDid = manual;
+          document.getElementById('confirmDid').textContent = currentDid;
+        } else {
+          alert('璇峰厛鐢熸垚鎴栬緭鍏?DID');
+          return;
+        }
+      }
+
+      goToStep2();
+    }
+
+    function goToStep1() {
+      document.getElementById('step1').classList.remove('hidden');
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step4').classList.add('hidden');
+      document.getElementById('sf1').className = 'sf-item active';
+      document.getElementById('sf2').className = 'sf-item';
+      document.getElementById('sf3').className = 'sf-item';
+      document.getElementById('sf4').className = 'sf-item';
+    }
+
+    function goToStep2() {
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.remove('hidden');
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step4').classList.add('hidden');
+      document.getElementById('sf1').className = 'sf-item done';
+      document.getElementById('sf2').className = 'sf-item active';
+      document.getElementById('sf3').className = 'sf-item';
+      document.getElementById('sf4').className = 'sf-item';
+    }
+
+    async function registerNode() {
+      goToStep3();
+      
+      // Simulate trust handshake
+      setTimeout(() => {
+        document.getElementById('handshakeStatus').className = 'status-box status-success';
+        document.getElementById('handshakeStatus').innerHTML = '<span class="icon">鉁?/span><div><strong>淇′换鎻℃墜瀹屾垚锛?/strong> 鑺傜偣宸叉敞鍐屽埌缃戠粶銆?/div>';
+        document.getElementById('handshakePreview').textContent = JSON.stringify({
+          token_id: 'TRUST-' + Date.now().toString(36).toUpperCase(),
+          from: currentDid,
+          to: 'did:animalink:mesh',
+          subject: '鑺傜偣鍏ョ綉娉ㄥ唽',
+          body: { action: 'join_network', node: currentDid, trust_seed: 80 },
+          status: 'verified',
+          timestamp: new Date().toISOString()
+        }, null, 2);
+        
+        setTimeout(goToStep4, 1500);
+      }, 2000);
+    }
+
+    function goToStep3() {
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.remove('hidden');
+      document.getElementById('step4').classList.add('hidden');
+      document.getElementById('sf1').className = 'sf-item done';
+      document.getElementById('sf2').className = 'sf-item done';
+      document.getElementById('sf3').className = 'sf-item active';
+      document.getElementById('sf4').className = 'sf-item';
+    }
+
+    async function goToStep4() {
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step4').classList.remove('hidden');
+      document.getElementById('sf1').className = 'sf-item done';
+      document.getElementById('sf2').className = 'sf-item done';
+      document.getElementById('sf3').className = 'sf-item done';
+      document.getElementById('sf4').className = 'sf-item active';
+
+      document.getElementById('finalDid').textContent = currentDid;
+
+      // Show network nodes from API
+      const nodeList = document.getElementById('networkNodes');
+      const nodes = await fetchNodes();
+      let html = '';
+      for (const node of nodes) {
+        const isMe = node.id === currentDid || node.did === currentDid;
+        const trustPct = Math.round((node.trust || 0) * 100);
+        html += `
+          <div class="node-row" style="${isMe ? 'border-color:var(--accent);background:var(--accent-dim);' : ''}">
+            <span class="badge ${node.status === 'active' ? 'badge-active' : 'badge-offline'}">${node.status}</span>
+            <span class="n-name">${node.label || node.id}${isMe ? ' (浣?' : ''}</span>
+            <span class="n-did">${node.did || node.id}</span>
+            <span class="n-score" style="color:var(--green);">${trustPct}</span>
+          </div>
+        `;
+      }
+      nodeList.innerHTML = html;
+
+      document.getElementById('statusDot').className = 'dot live';
+      document.getElementById('statusText').textContent = '宸插叆缃?;
+    }
+
+    initPage();
+  </script>
+</body>
+</html>

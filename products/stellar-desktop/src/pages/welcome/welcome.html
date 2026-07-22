@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 2.0 鈥?娆㈣繋</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .hero {
+      text-align: center;
+      padding: 48px 20px 32px;
+    }
+    .hero .brand-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--cyan), var(--accent), #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+    }
+    .hero .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      font-weight: 400;
+    }
+    .hero .version {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .hero .tagline {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      transition: all var(--transition);
+    }
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .feature-card .f-icon {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    .feature-card h3 {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    .setup-flow {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .setup-flow h3 {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .flow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .flow-step-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.84rem;
+      color: var(--text-dim);
+    }
+    .flow-step-chip .step-arrow {
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .flow-step-chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .cta-section {
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .status-summary {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-row .label { color: var(--text-dim); font-size: 0.88rem; }
+    .status-row .value { font-size: 0.88rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a class="active">娆㈣繋</a>
+      <a onclick="StellarNav.navigate('did_gen')">DID 娉ㄥ唽</a>
+      <a onclick="StellarNav.navigate('carbon_bind')">纰冲熀缁戝畾</a>
+      <a onclick="StellarNav.navigate('llm_config')">LLM 閰嶇疆</a>
+      <a onclick="StellarNav.navigate('persona_load')">浜烘牸鍔犺浇</a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+      <a onclick="StellarNav.navigate('animlink_join')">鍔犲叆缃戠粶</a>
+      <a onclick="StellarNav.navigate('animlink_tokens')">浠ょ墝</a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a onclick="StellarNav.navigate('skills')">鎶€鑳?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">灏辩华</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Step Indicator -->
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <!-- Hero -->
+    <div class="hero fade-in">
+      <span class="brand-icon">鉁?/span>
+      <h1>STELLAR NYX</h1>
+      <p class="subtitle">ANIMA 鈥?妗岄潰鑺傜偣</p>
+      <p class="version">v1.0.0 路 ANIMA OS</p>
+      <p class="tagline">
+        鐢熸垚浣犵殑鍘讳腑蹇冨寲鏁板瓧韬唤锛岀粦瀹氱⒊鍩轰俊浠婚敋锛屽姞杞戒汉鏍煎寘锛?       鎴愪负 ANIMA 缃戠粶鐨勬寮忔垚鍛橈紒
+      </p>
+    </div>
+
+    <!-- Status Summary (if already configured) -->
+    <div id="existingStatus" class="status-summary hidden">
+      <h3 style="margin-bottom:12px;">馃搵 褰撳墠鐘舵€?/h3>
+      <div id="statusRows"></div>
+      <div class="mt-16">
+        <button class="btn btn-primary btn-block" onclick="StellarNav.navigate('dashboard')">
+          杩涘叆鎺у埗鍙?
+        </button>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features slide-up">
+      <div class="feature-card">
+        <div class="f-icon">馃攼</div>
+        <h3>DID 娉ㄥ唽</h3>
+        <p>Ed25519 瀵嗛挜瀵?路 绉侀挜姘镐笉绂昏澶?/p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">馃敆</div>
+        <h3>纰冲熀缁戝畾</h3>
+        <p>韬唤鎷呬繚缁戝畾 路 淇′换鍒嗙瀛?0.5</p>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">馃К</div>
+        <h3>浜烘牸鍔犺浇</h3>
+        <p>STELLAR NYX 2.0 路 鍑哄巶棰勮</p>
+      </div>
+    </div>
+
+    <!-- Setup Flow -->
+    <div class="setup-flow slide-up">
+      <h3>馃攧 璁剧疆娴佺▼</h3>
+      <div class="flow-steps">
+        <span class="flow-step-chip active">1. 娆㈣繋</span>
+        <span class="flow-step-chip"><span class="step-arrow">鈫?/span> 2. DID 娉ㄥ唽</span>
+        <span class="flow-step-chip"><span class="step-arrow">鈫?/span> 3. 纰冲熀缁戝畾</span>
+        <span class="flow-step-chip"><span class="step-arrow">鈫?/span> 4. LLM 閰嶇疆</span>
+        <span class="flow-step-chip"><span class="step-arrow">鈫?/span> 5. 浜烘牸鍔犺浇</span>
+        <span class="flow-step-chip"><span class="step-arrow">鈫?/span> 6. 鎺у埗鍙?/span>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section mt-24">
+      <button class="btn btn-primary btn-lg" onclick="startSetup()">
+        寮€濮嬭缃?鈫?
+      </button>
+      <p class="mt-8" style="font-size:0.8rem;color:var(--text-muted);">
+        鏁翠釜杩囩▼绾?2-3 鍒嗛挓
+      </p>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    async function startSetup() {
+      const btn = document.querySelector('.btn-primary');
+      btn.disabled = true;
+      btn.textContent = '鍔犺浇涓?..';
+      
+      await StellarState.init();
+      
+      if (StellarState.didGenerated && StellarState.identityRegistered) {
+        StellarNav.navigate('dashboard');
+      } else if (StellarState.didGenerated) {
+        StellarNav.navigate('carbon_bind');
+      } else {
+        StellarNav.navigate('did_gen');
+      }
+    }
+
+    async function initPage() {
+      // Show body
+      document.body.style.opacity = '1';
+      
+      // Init state
+      await StellarState.init();
+
+      // Render steps
+      const pageIdx = StellarState.getActiveStepIndex('welcome');
+      const completed = StellarState.getCompletedSteps();
+      StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+      // Update nav status
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      if (StellarState.didGenerated) {
+        dot.className = 'dot live';
+        text.textContent = '娲昏穬';
+      } else {
+        dot.className = 'dot';
+        text.textContent = '鏂扮敤鎴?;
+      }
+
+      // Show existing status if configured
+      if (StellarState.didGenerated) {
+        const container = document.getElementById('existingStatus');
+        const rows = document.getElementById('statusRows');
+        container.classList.remove('hidden');
+        
+        const statusData = [
+          { label: 'DID 娉ㄥ唽', value: StellarState.did ? StellarState.did.substring(0, 20) + '...' : '-' },
+          { label: '纰冲熀缁戝畾', value: StellarState.carbonBound ? '鉁?宸茬粦瀹? : '鉂?鏈粦瀹? },
+          { label: 'LLM 閰嶇疆', value: StellarState.llmConfigured ? '鉁?宸查厤缃? : '鉂?鏈厤缃? },
+          { label: '浜烘牸鍔犺浇', value: StellarState.personaLoaded ? '鉁?' + StellarState.personaName : '鉂?鏈姞杞? },
+          { label: '鑺傜偣鐘舵€?, value: StellarState.identityRegistered ? '鉁?宸叉敞鍐? : '鉂?鏈敞鍐? }
+        ];
+
+        rows.innerHTML = statusData.map(d => `
+          <div class="status-row">
+            <span class="label">${d.label}</span>
+            <span class="value">${d.value}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
+<!-- generated by Iris 2026-07-14 -->

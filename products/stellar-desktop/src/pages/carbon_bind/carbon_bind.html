@@ -1,0 +1,470 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 2.0 鈥?纰冲熀缁戝畾</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .wechat-sim-section {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .qrcode-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 16px;
+    }
+    .qrcode-container svg {
+      width: 100%;
+      height: 100%;
+    }
+    .bind-methods {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .bind-method-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .bind-method-card:hover {
+      border-color: var(--accent);
+      background: var(--card-hover);
+    }
+    .bind-method-card .method-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .bind-method-card .method-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .bind-method-card .method-desc {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    .bind-method-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .attestation-detail {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      word-break: break-all;
+      line-height: 1.7;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .trust-score {
+      text-align: center;
+      padding: 24px;
+    }
+    .trust-score .score-value {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--green);
+      display: block;
+    }
+    .trust-score .score-label {
+      font-size: 0.92rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .skipped-section {
+      background: rgba(255,214,0,0.06);
+      border: 1px solid rgba(255,214,0,0.15);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .skipped-section p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">娆㈣繋</a>
+      <a onclick="StellarNav.navigate('did_gen')">DID 娉ㄥ唽</a>
+      <a class="active">纰冲熀缁戝畾</a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a onclick="StellarNav.navigate('skills')">鎶€鑳?/a>
+      <a onclick="StellarNav.navigate('llm_config')">LLM 閰嶇疆</a>
+      <a onclick="StellarNav.navigate('persona_load')">浜烘牸鍔犺浇</a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">灏辩华</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Step Indicator -->
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      <span class="step-badge">2</span>
+      缁戝畾纰冲熀韬唤
+    </div>
+    <p class="page-desc">
+      缁戝畾浣犵殑寰俊/鎵嬫満鍙蜂綔涓烘櫤鑳戒綋鐨勩€屼汉鏍兼媴淇濅汉銆嶃€?     缁戝畾鍚庝俊浠诲垎绉嶅瓙璁句负 0.5锛岃幏寰?ANIMA 缃戠粶鐨勫叏棰濅俊浠昏捣鐐广€?
+    </p>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-box status-info hidden">
+      <span class="icon">鈩癸笍</span>
+      <span id="statusTextContent">灏辩华</span>
+    </div>
+
+    <!-- No DID warning -->
+    <div id="noDidWarning" class="status-box status-warning">
+      <span class="icon">鈿狅笍</span>
+      <span>璇峰厛鍦ㄣ€孌ID 娉ㄥ唽銆嶉〉闈㈢敓鎴愯韩浠藉悗鍐嶈繘琛岀粦瀹氥€?       <button class="btn btn-secondary btn-sm mt-8" onclick="StellarNav.navigate('did_gen')">鍓嶅線 DID 娉ㄥ唽</button>
+      </span>
+    </div>
+
+    <!-- Binding Section -->
+    <div id="bindSection">
+      <!-- Trust Info -->
+      <div class="card mb-16">
+        <div class="card-header">
+          <div class="card-icon">馃幆</div>
+          <h3>淇′换鍒嗘暟</h3>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:4px;">鏃犳媴淇濇棤缁戝畾</p>
+              <p style="font-size:1.1rem;font-weight:700;color:var(--text-dim);">0.0</p>
+            </div>
+            <div>
+              <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:4px;">纰冲熀鎷呬繚</p>
+              <p style="font-size:1.1rem;font-weight:700;color:var(--green);">0.5</p>
+            </div>
+            <div>
+              <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:4px;">鎷呬繚绾у埆</p>
+              <p style="font-size:1.1rem;font-weight:700;color:var(--accent);">owner</p>
+            </div>
+            <div>
+              <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:4px;">绛惧悕绠楁硶</p>
+              <p style="font-size:1.1rem;font-weight:700;color:var(--cyan);">Ed25519</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Method Selection -->
+      <p style="font-size:0.9rem;color:var(--text-dim);margin-bottom:12px;">閫夋嫨缁戝畾鏂瑰紡锛?/p>
+      <div class="bind-methods" id="bindMethods">
+        <div class="bind-method-card selected" onclick="selectMethod(this, 'wechat')">
+          <div class="method-icon">馃挰</div>
+          <div class="method-name">寰俊缁戝畾</div>
+          <div class="method-desc">鎺ㄨ崘 路 淇′换鍒?0.5</div>
+        </div>
+        <div class="bind-method-card" onclick="selectMethod(this, 'phone')">
+          <div class="method-icon">馃摫</div>
+          <div class="method-name">鎵嬫満鍙?/div>
+          <div class="method-desc">鐭俊楠岃瘉 路 淇′换鍒?0.5</div>
+        </div>
+        <div class="bind-method-card" onclick="selectMethod(this, 'skip')">
+          <div class="method-icon">鈴?/div>
+          <div class="method-name">鏆傛椂璺宠繃</div>
+          <div class="method-desc">淇′换鍒?0.0</div>
+        </div>
+      </div>
+
+      <!-- WeChat QR Section -->
+      <div id="wechatSection" class="card">
+        <div class="card-header">
+          <div class="card-icon">馃挰</div>
+          <h3>寰俊鎵爜缁戝畾</h3>
+        </div>
+        <div class="card-body">
+          <div class="wechat-sim-section">
+            <div class="qrcode-container">
+              <!-- SVG QR Code Placeholder (simulated) -->
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <rect width="200" height="200" fill="#111827" rx="16"/>
+                <!-- QR pattern -->
+                <rect x="20" y="20" width="40" height="40" rx="4" fill="#e2e8f0"/>
+                <rect x="24" y="24" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="44" y="24" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="24" y="44" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="68" y="20" width="2" height="40" rx="1" fill="#e2e8f0"/>
+                <rect x="88" y="20" width="2" height="40" rx="1" fill="#e2e8f0"/>
+                <rect x="108" y="20" width="2" height="40" rx="1" fill="#e2e8f0"/>
+                <rect x="128" y="20" width="2" height="40" rx="1" fill="#e2e8f0"/>
+                <rect x="140" y="20" width="40" height="40" rx="4" fill="#e2e8f0"/>
+                <rect x="144" y="24" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="164" y="24" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="144" y="44" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="20" y="68" width="40" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="20" y="88" width="40" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="20" y="108" width="40" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="68" y="68" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="88" y="68" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="108" y="68" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="128" y="68" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="148" y="68" width="32" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="148" y="88" width="32" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="148" y="108" width="32" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="20" y="140" width="40" height="40" rx="4" fill="#e2e8f0"/>
+                <rect x="24" y="144" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="44" y="144" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="24" y="164" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="68" y="128" width="2" height="40" rx="1" fill="#e2e8f0"/>
+                <rect x="88" y="128" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="108" y="128" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="128" y="128" width="12" height="12" rx="2" fill="#e2e8f0"/>
+                <rect x="148" y="128" width="32" height="40" rx="4" fill="#e2e8f0"/>
+                <rect x="148" y="132" width="12" height="12" rx="2" fill="#111827"/>
+                <rect x="168" y="132" width="8" height="12" rx="2" fill="#111827"/>
+                <rect x="152" y="152" width="24" height="12" rx="2" fill="#111827"/>
+                <rect x="88" y="148" width="2" height="32" rx="1" fill="#e2e8f0"/>
+                <rect x="108" y="148" width="2" height="32" rx="1" fill="#e2e8f0"/>
+                <rect x="70" y="160" width="20" height="2" rx="1" fill="#e2e8f0"/>
+                <rect x="118" y="160" width="2" height="20" rx="1" fill="#e2e8f0"/>
+              </svg>
+            </div>
+            <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:16px;">
+              鎵撳紑寰俊銆屾壂涓€鎵€嶆壂鎻忎笂鏂逛簩缁寸爜瀹屾垚缁戝畾
+            </p>
+            <div class="input-group" style="max-width:400px;margin:0 auto;">
+              <label for="wechatIdInput">寰俊 OpenID锛堟ā鎷燂級</label>
+              <input type="text" id="wechatIdInput" class="input-field"
+                     placeholder="杈撳叆娴嬭瘯 openid锛堝: oKx123...锛?
+                     value="oKx_wechat_demo_20260714">
+              <span class="hint">妗岄潰鐗?v1 浣跨敤妯℃嫙寰俊 ID锛屽悗缁泦鎴愮湡瀹?OAuth</span>
+            </div>
+            <button class="btn btn-primary mt-16" onclick="startWechatBind()">
+              馃挰 寮€濮嬬粦瀹?
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone section -->
+      <div id="phoneSection" class="card hidden">
+        <div class="card-header">
+          <div class="card-icon">馃摫</div>
+          <h3>鎵嬫満鍙风粦瀹?/h3>
+        </div>
+        <div class="card-body">
+          <div class="input-group">
+            <label for="phoneInput">鎵嬫満鍙风爜</label>
+            <input type="text" id="phoneInput" class="input-field" placeholder="璇疯緭鍏ユ墜鏈哄彿" value="13800138000">
+            <span class="hint">妗岄潰鐗?v1 浣跨敤妯℃嫙鎵嬫満鍙凤紝鍚庣画闆嗘垚鐪熷疄鐭俊楠岃瘉</span>
+          </div>
+          <button class="btn btn-primary mt-8" onclick="startPhoneBind()">
+            馃摫 缁戝畾鎵嬫満鍙?
+          </button>
+        </div>
+      </div>
+
+      <!-- Skip section -->
+      <div id="skipSection" class="skipped-section hidden">
+        <p>鈴?浣犻€夋嫨浜嗚烦杩囩⒊鍩虹粦瀹氥€?/p>
+        <p style="margin-top:8px;font-size:0.84rem;">
+          榛樿淇′换鍒嗗皢涓?0.0銆傚缓璁◢鍚庡畬鎴愮粦瀹氫互鑾峰緱瀹屾暣淇′换銆?
+        </p>
+        <button class="btn btn-secondary mt-16" onclick="confirmSkip()">纭璺宠繃</button>
+      </div>
+    </div>
+
+    <!-- Result Section -->
+    <div id="resultSection" class="hidden">
+      <div class="trust-score">
+        <span class="score-value" id="trustScoreValue">0.5</span>
+        <span class="score-label">淇′换鍒嗘暟</span>
+      </div>
+      <div id="bindSuccessMsg" class="status-box status-success">
+        <span class="icon">鉁?/span>
+        <span id="bindSuccessText">纰冲熀缁戝畾鎴愬姛锛?/span>
+      </div>
+
+      <!-- Attestation Detail -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">馃搫</div>
+          <h3>Attestation 璁板綍</h3>
+        </div>
+        <div class="card-body">
+          <div class="attestation-detail" id="attestationDetail"></div>
+          <p style="font-size:0.8rem;color:var(--green);margin-top:8px;">
+            鉁?绛惧悕楠岃瘉閫氳繃
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-gap mt-24" style="justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-success btn-lg" onclick="StellarNav.navigate('llm_config')">
+          鉁?涓嬩竴姝ワ細LLM 閰嶇疆 鈫?
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    let selectedMethod = 'wechat';
+
+    function selectMethod(el, method) {
+      document.querySelectorAll('.bind-method-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedMethod = method;
+
+      // Show/hide sections
+      document.getElementById('wechatSection').classList.toggle('hidden', method !== 'wechat');
+      document.getElementById('phoneSection').classList.toggle('hidden', method !== 'phone');
+      document.getElementById('skipSection').classList.toggle('hidden', method !== 'skip');
+    }
+
+    async function startWechatBind() {
+      const openid = document.getElementById('wechatIdInput').value.trim();
+      if (!openid) {
+        showStatus('warning', '鈿狅笍 璇疯緭鍏ュ井淇?OpenID');
+        return;
+      }
+      await performBind('wechat', openid);
+    }
+
+    async function startPhoneBind() {
+      const phone = document.getElementById('phoneInput').value.trim();
+      if (!phone) {
+        showStatus('warning', '鈿狅笍 璇疯緭鍏ユ墜鏈哄彿');
+        return;
+      }
+      await performBind('phone', phone);
+    }
+
+    function confirmSkip() {
+      // Skip binding, go to next step
+      StellarState.log('info', '鐢ㄦ埛璺宠繃纰冲熀缁戝畾锛屼俊浠诲垎 = 0.0');
+      StellarState.trustSeed = 0;
+      StellarNav.navigate('llm_config');
+    }
+
+    async function performBind(guardianType, guardianId) {
+      showStatus('info', '姝ｅ湪鎵ц纰冲熀缁戝畾...');
+
+      try {
+        const result = await window.stellarNyx.carbonBind(guardianId);
+
+        if (!result.success) {
+          showStatus('error', `鉂?缁戝畾澶辫触: ${result.error}`);
+          return;
+        }
+
+        // Update state
+        StellarState.carbonBound = true;
+        StellarState.attestation = result.attestation;
+        StellarState.trustSeed = result.trustSeed;
+        StellarState.log('success', `纰冲熀缁戝畾鎴愬姛: ${result.attestation.id}`);
+
+        // Show result
+        document.getElementById('bindSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.remove('hidden');
+        document.getElementById('trustScoreValue').textContent = result.trustSeed.toFixed(1);
+        
+        const bindMsg = result.signatureValid
+          ? `鉁?纰冲熀缁戝畾鎴愬姛锛佺鍚嶉獙璇侀€氳繃锛屼俊浠诲垎绉嶅瓙 ${result.trustSeed}`
+          : `鈿狅笍 缁戝畾瀹屾垚浣嗙鍚嶉獙璇佸け璐;
+        document.getElementById('bindSuccessText').textContent = bindMsg;
+
+        // Show attestation detail
+        document.getElementById('attestationDetail').textContent = 
+          JSON.stringify(result.attestation, null, 2);
+
+        // Re-render steps
+        const pageIdx = StellarState.getActiveStepIndex('carbon_bind');
+        const completed = StellarState.getCompletedSteps();
+        StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+        // Update nav status
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '宸茬粦瀹?;
+
+        showStatus('success', bindMsg);
+
+      } catch (err) {
+        showStatus('error', `鉂?缁戝畾杩囩▼鍑洪敊: ${err.message}`);
+      }
+    }
+
+    function showStatus(type, message) {
+      const box = document.getElementById('statusMessage');
+      const content = document.getElementById('statusTextContent');
+      box.className = `status-box status-${type}`;
+      content.textContent = message;
+      box.classList.remove('hidden');
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await StellarState.init();
+
+      const pageIdx = StellarState.getActiveStepIndex('carbon_bind');
+      const completed = StellarState.getCompletedSteps();
+      StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+      // Check DID exists
+      if (!StellarState.didGenerated) {
+        document.getElementById('noDidWarning').classList.remove('hidden');
+        document.getElementById('bindSection').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('noDidWarning').classList.add('hidden');
+
+      // If already bound, show result
+      if (StellarState.carbonBound) {
+        document.getElementById('bindSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.remove('hidden');
+        document.getElementById('trustScoreValue').textContent = '0.5';
+        document.getElementById('bindSuccessText').textContent = '鉁?宸茬粦瀹氱殑纰冲熀韬唤';
+        
+        const attestations = StellarState.attestation 
+          ? JSON.stringify(StellarState.attestation, null, 2)
+          : '{ "status": "宸茬粦瀹? }';
+        document.getElementById('attestationDetail').textContent = attestations;
+
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '宸茬粦瀹?;
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
+<!-- generated by Iris 2026-07-14 -->

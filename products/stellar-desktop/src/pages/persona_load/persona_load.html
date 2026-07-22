@@ -1,0 +1,520 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 2.0 鈥?浜烘牸鍔犺浇</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .persona-preview {
+      text-align: center;
+      padding: 20px;
+    }
+    .persona-preview .p-icon {
+      font-size: 3.5rem;
+      margin-bottom: 12px;
+    }
+    .persona-preview .p-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .persona-preview .p-version {
+      font-size: 0.84rem;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+    .persona-preview .p-desc {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    .persona-manifest {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 12px;
+      font-size: 0.84rem;
+      color: var(--text-dim);
+    }
+    .persona-manifest .m-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .persona-manifest .m-row:last-child { border-bottom: none; }
+    .persona-manifest .m-label { color: var(--text-muted); }
+    .persona-manifest .m-value { color: var(--text); font-weight: 500; }
+
+    .default-package-hint {
+      background: rgba(0,212,170,0.06);
+      border: 1px solid rgba(0,212,170,0.15);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .default-package-hint .hint-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .default-package-hint .hint-text {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .file-upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .file-upload-zone:hover {
+      border-color: var(--accent);
+      background: var(--card);
+    }
+    .file-upload-zone .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+    .file-upload-zone .upload-text {
+      color: var(--text-dim);
+      font-size: 0.92rem;
+    }
+    .file-upload-zone .upload-hint {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">娆㈣繋</a>
+      <a onclick="StellarNav.navigate('did_gen')">DID 娉ㄥ唽</a>
+      <a onclick="StellarNav.navigate('carbon_bind')">纰冲熀缁戝畾</a>
+      <a onclick="StellarNav.navigate('llm_config')">LLM 閰嶇疆</a>
+      <a class="active">浜烘牸鍔犺浇</a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a onclick="StellarNav.navigate('skills')">鎶€鑳?/a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">灏辩华</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Step Indicator -->
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      <span class="step-badge">4</span>
+      鍔犺浇 STELLAR NYX 浜烘牸
+    </div>
+    <p class="page-desc">
+      鏈€鍚庝竴姝ワ細鍔犺浇 STELLAR NYX 2.0 浜烘牸鍖呫€傚畬鎴愬悗鍗冲彲娉ㄥ唽 ANIMA Identity 骞舵帴鍏ョ綉缁溿€?
+    </p>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-box status-info hidden">
+      <span class="icon">鈩癸笍</span>
+      <span id="statusTextContent">灏辩华</span>
+    </div>
+
+    <!-- Default Package Hint -->
+    <div class="default-package-hint">
+      <div class="hint-icon">馃摝</div>
+      <div class="hint-text">
+        <strong>鎺ㄨ崘瀵煎叆璺緞锛?/strong><br>
+        <code>Z:\qclaw\distill\STELLAR_NYX_1.0-beta.tar.gz</code>
+        <br>鎴栦粠鏈湴閫夋嫨鍏朵粬 ANIMA 浜烘牸鍖呫€?
+      </div>
+    </div>
+
+    <!-- Main Section -->
+    <div id="mainSection">
+      <!-- Not Loaded State -->
+      <div id="notLoadedSection">
+        <!-- Upload Zone -->
+        <div class="file-upload-zone" onclick="selectPersona()">
+          <div class="upload-icon">馃搨</div>
+          <div class="upload-text">鐐瑰嚮閫夋嫨浜烘牸鍖呮枃浠?/div>
+          <div class="upload-hint">鏀寔 .tar.gz / .lingpkg 鏍煎紡</div>
+        </div>
+
+        <!-- Default Path Section -->
+        <div class="card mt-16">
+          <div class="card-header">
+            <div class="card-icon">鈿?/div>
+            <h3>蹇€熷姞杞?/h3>
+          </div>
+          <div class="card-body">
+            <p style="font-size:0.88rem;color:var(--text-dim);margin-bottom:12px;">
+              濡傛灉 STELLAR NYX 2.0 鍖呭湪榛樿璺緞锛屽彲鐩存帴鐐瑰嚮蹇€熷姞杞斤細
+            </p>
+            <button class="btn btn-primary" onclick="loadDefaultPackage()">
+              馃摜 鍔犺浇 STELLAR NYX 2.0-beta
+            </button>
+            <span style="margin: 0 8px;color:var(--text-muted);">鎴?/span>
+            <button class="btn btn-secondary" onclick="selectAndLoad()">
+              馃搧 浠庢湰鍦伴€夋嫨鏂囦欢
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingSection" class="hidden" style="text-align:center;padding:40px;">
+        <div class="spinner"></div>
+        <p style="color:var(--text-dim);margin-top:16px;">
+          姝ｅ湪鍔犺浇骞堕獙璇佷汉鏍煎寘...
+        </p>
+        <p style="color:var(--text-muted);font-size:0.84rem;" id="loadingFileName"></p>
+      </div>
+
+      <!-- Loaded State (Preview) -->
+      <div id="loadedSection" class="hidden">
+        <div class="card">
+          <div class="card-body">
+            <div class="persona-preview">
+              <div class="p-icon">馃К</div>
+              <div class="p-name" id="personaName">STELLAR NYX</div>
+              <div class="p-version" id="personaVersion">v1.0.0-beta</div>
+              <div class="p-desc" id="personaDesc">
+                榛戞殫濂虫€?路 ANIMA 妗岄潰鑺傜偣浜烘牸鍖呫€?               鍖呭惈瀹屾暣鐨勪汉璁炬鏋躲€佽鐭ラ厤缃拰涓栫晫瑙傘€?
+              </div>
+            </div>
+
+            <!-- Manifest Details -->
+            <div id="manifestSection">
+              <p style="font-size:0.9rem;font-weight:600;color:var(--text);margin-bottom:8px;">
+                馃搵 鍖呬俊鎭?
+              </p>
+              <div class="persona-manifest" id="personaManifest"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note-box mt-16">
+          馃挕 浜烘牸鍖呭湪棣栨鍔犺浇鏃惰嚜鍔ㄨВ鍘嬪埌 <code>~/.anima/persona/</code> 鐩綍銆?         瀹屾暣瑙ｅ帇鍜屼娇鐢ㄩ渶瑕佸凡閰嶇疆 LLM銆?
+        </div>
+
+        <!-- Summary & Continue -->
+        <div class="card mt-16">
+          <div class="card-header">
+            <div class="card-icon">馃摑</div>
+            <h3>璁剧疆瀹屾垚鎽樿</h3>
+          </div>
+          <div class="card-body">
+            <div id="setupSummary">
+              <div class="flex" style="justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--text-dim);">DID 娉ㄥ唽</span>
+                <span id="summaryDid" style="color:var(--green);">鉁?/span>
+              </div>
+              <div class="flex" style="justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--text-dim);">纰冲熀缁戝畾</span>
+                <span id="summaryCarbon" style="color:var(--green);">鉁?/span>
+              </div>
+              <div class="flex" style="justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--text-dim);">LLM 閰嶇疆</span>
+                <span id="summaryLlm" style="color:var(--green);">鉁?/span>
+              </div>
+              <div class="flex" style="justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--text-dim);">浜烘牸鍔犺浇</span>
+                <span id="summaryPersona" style="color:var(--green);">鉁?/span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-16">
+          <div class="card-header">
+            <div class="card-icon">馃攧</div>
+            <h3>鏇存崲浜烘牸鍖?/h3>
+          </div>
+          <div class="card-body">
+            <p style="font-size:0.88rem;color:var(--text-dim);margin-bottom:12px;">
+              褰撳墠宸插姞杞戒汉鏍煎寘锛屽闇€鏇存崲璇风偣鍑讳笅鏂规寜閽€?
+            </p>
+            <button class="btn btn-primary" onclick="switchPersona()">
+              馃摝 鍔犺浇鐬殑鐏靛厓鍖咃紙ANIMA_SHUN_1.0锛?
+            </button>
+            <span style="margin: 0 8px;color:var(--text-muted);">鎴?/span>
+            <button class="btn btn-secondary" onclick="selectAndLoad()">
+              馃搧 浠庢湰鍦伴€夋嫨鍏朵粬鏂囦欢
+            </button>
+          </div>
+        </div>
+        <div class="flex flex-gap mt-24" style="justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-success btn-lg" onclick="registerIdentity()">
+            馃寪 娉ㄥ唽 ANIMA Identity 骞惰繘鍏ユ帶鍒跺彴 鈫?
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registering State -->
+    <div id="registeringSection" class="hidden">
+      <div class="card">
+        <div style="text-align:center;padding:40px;">
+          <div class="spinner"></div>
+          <p style="color:var(--text-dim);margin-top:16px;" id="registerStatusText">
+            姝ｅ湪鍚?ANIMA Identity 缃戠粶娉ㄥ唽鑺傜偣...
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    async function switchPersona() {
+      const r = confirm('褰撳墠宸插姞杞?NYX 1.0 浜烘牸鍖呫€俓n\n纭畾瑕佺敤鐬殑鐏靛厓鍖咃紙ANIMA_SHUN_1.0锛夎鐩栧悧锛?);
+      if (!r) return;
+      
+      const shunPath = 'Z:\\qclaw\\distill\\ANIMA_SHUN_1.0.tar.gz';
+      document.getElementById('loadedSection').classList.add('hidden');
+      document.getElementById('loadingSection').classList.remove('hidden');
+      document.getElementById('loadingFileName').textContent = shunPath;
+      await loadPersona(shunPath);
+    }
+
+    async function selectPersona() {
+      await selectAndLoad();
+    }
+
+    async function loadDefaultPackage() {
+      const defaultPath = 'Z:\\qclaw\\distill\\STELLAR_NYX_1.0-beta.tar.gz';
+      document.getElementById('loadingFileName').textContent = defaultPath;
+      await loadPersona(defaultPath);
+    }
+
+    async function selectAndLoad() {
+      try {
+        const result = await window.stellarNyx.personaSelect();
+        if (!result.success) {
+          if (result.canceled) return;
+          showStatus('warning', result.error || '閫夋嫨鏂囦欢澶辫触');
+          return;
+        }
+        document.getElementById('loadingFileName').textContent = result.filePath;
+        await loadPersona(result.filePath);
+      } catch (err) {
+        showStatus('error', `鉂?閫夋嫨鏂囦欢澶辫触: ${err.message}`);
+      }
+    }
+
+    async function loadPersona(filePath) {
+      // Show loading
+      document.getElementById('notLoadedSection').classList.add('hidden');
+      document.getElementById('loadingSection').classList.remove('hidden');
+      document.getElementById('loadedSection').classList.add('hidden');
+      document.getElementById('statusMessage').classList.add('hidden');
+
+      try {
+        const result = await window.stellarNyx.personaLoad(filePath);
+
+        if (!result.success) {
+          document.getElementById('loadingSection').classList.add('hidden');
+          document.getElementById('notLoadedSection').classList.remove('hidden');
+          showStatus('error', `鉂?鍔犺浇澶辫触: ${result.error}`);
+          return;
+        }
+
+        // Update state
+        StellarState.personaLoaded = true;
+        StellarState.personaPath = filePath;
+        StellarState.personaName = result.packageName;
+        StellarState.log('success', `浜烘牸鍖呭凡鍔犺浇: ${result.packageName}`);
+
+        // Show loaded preview
+        document.getElementById('loadingSection').classList.add('hidden');
+        document.getElementById('loadedSection').classList.remove('hidden');
+
+        // Populate persona info
+        const name = result.manifest?.name || 'STELLAR NYX';
+        const version = result.manifest?.version || '1.0.0-beta';
+        document.getElementById('personaName').textContent = name;
+        document.getElementById('personaVersion').textContent = version;
+
+        // Populate manifest
+        const fileSize = formatSize(result.size);
+        document.getElementById('personaManifest').innerHTML = `
+          <div class="m-row">
+            <span class="m-label">鍖呭悕绉?/span>
+            <span class="m-value">${result.packageName}</span>
+          </div>
+          <div class="m-row">
+            <span class="m-label">鏂囦欢澶у皬</span>
+            <span class="m-value">${fileSize}</span>
+          </div>
+          <div class="m-row">
+            <span class="m-label">鍖呯被鍨?/span>
+            <span class="m-value">${result.type || 'distilled'}</span>
+          </div>
+          <div class="m-row">
+            <span class="m-label">鍘嬬缉鏍煎紡</span>
+            <span class="m-value">${result.isGzip ? 'GZip (.tar.gz)' : '鍏朵粬'}</span>
+          </div>
+          ${result.copiedTo ? `
+          <div class="m-row">
+            <span class="m-label">宸插鍒跺埌</span>
+            <span class="m-value" style="font-size:0.78rem;">${result.copiedTo}</span>
+          </div>` : ''}
+        `;
+
+        // Update summary
+        updateSummary();
+
+        // Re-render steps
+        const pageIdx = StellarState.getActiveStepIndex('persona_load');
+        const completed = StellarState.getCompletedSteps();
+        StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '宸插姞杞?;
+
+        showStatus('success', result.message || '鉁?浜烘牸鍖呭姞杞芥垚鍔?);
+
+      } catch (err) {
+        document.getElementById('loadingSection').classList.add('hidden');
+        document.getElementById('notLoadedSection').classList.remove('hidden');
+        showStatus('error', `鉂?鍔犺浇杩囩▼鍑洪敊: ${err.message}`);
+      }
+    }
+
+    function updateSummary() {
+      document.getElementById('summaryDid').textContent = 
+        StellarState.didGenerated ? '鉁?宸叉敞鍐? : '鉂?鏈敞鍐?;
+      document.getElementById('summaryCarbon').textContent = 
+        StellarState.carbonBound ? '鉁?宸茬粦瀹? : '鈴?璺宠繃';
+      document.getElementById('summaryLlm').textContent = 
+        StellarState.llmConfigured ? '鉁?宸查厤缃? : '鈴?璺宠繃';
+      document.getElementById('summaryPersona').textContent = 
+        StellarState.personaLoaded ? '鉁?宸插姞杞? : '鈴?璺宠繃';
+    }
+
+    async function registerIdentity() {
+      // Show registering
+      document.getElementById('loadedSection').classList.add('hidden');
+      document.getElementById('registeringSection').classList.remove('hidden');
+
+      try {
+        const result = await window.stellarNyx.identityRegister('STELLAR NYX 鑺傜偣');
+
+        if (!result.success) {
+          showStatus('error', `鉂?娉ㄥ唽澶辫触: ${result.error}`);
+          document.getElementById('loadedSection').classList.remove('hidden');
+          document.getElementById('registeringSection').classList.add('hidden');
+          return;
+        }
+
+        StellarState.identityRegistered = true;
+        StellarState.nodeId = result.nodeId;
+        StellarState.registeredAt = result.registeredAt;
+        StellarState.log('success', `ANIMA Identity 娉ㄥ唽鎴愬姛: ${result.nodeId}`);
+
+        // Gateway status
+        if (result.gateway && !result.gateway.success) {
+          StellarState.log('info', 'ANIMA 缃戝叧鏈繍琛岋紝韬唤娉ㄥ唽宸插畬鎴?);
+        }
+
+        // Re-render steps
+        const completed = StellarState.getCompletedSteps();
+        StellarNav.renderSteps('stepIndicator', 5, completed);
+
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '鍦ㄧ嚎';
+
+        // Navigate to dashboard
+        setTimeout(() => {
+          StellarNav.navigate('dashboard');
+        }, 500);
+
+      } catch (err) {
+        showStatus('error', `鉂?娉ㄥ唽杩囩▼鍑洪敊: ${err.message}`);
+        document.getElementById('loadedSection').classList.remove('hidden');
+        document.getElementById('registeringSection').classList.add('hidden');
+      }
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function showStatus(type, message) {
+      const box = document.getElementById('statusMessage');
+      const content = document.getElementById('statusTextContent');
+      box.className = `status-box status-${type}`;
+      content.textContent = message;
+      box.classList.remove('hidden');
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+
+      // Init state first
+      await StellarState.init();
+
+      // Render steps
+      const pageIdx = StellarState.getActiveStepIndex('persona_load');
+      const completed = StellarState.getCompletedSteps();
+      StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+      // If already loaded, show loaded state
+      if (StellarState.personaLoaded) {
+        document.getElementById('notLoadedSection').classList.add('hidden');
+        document.getElementById('loadedSection').classList.remove('hidden');
+        
+        document.getElementById('personaName').textContent = 'STELLAR NYX';
+        document.getElementById('personaVersion').textContent = '1.0.0-beta';
+        document.getElementById('personaManifest').innerHTML = `
+          <div class="m-row">
+            <span class="m-label">鐘舵€?/span>
+            <span class="m-value" style="color:var(--green);">宸插姞杞?鉁?/span>
+          </div>
+          ${StellarState.personaName ? `
+          <div class="m-row">
+            <span class="m-label">鍖呭悕绉?/span>
+            <span class="m-value">${StellarState.personaName}</span>
+          </div>` : ''}
+        `;
+
+        updateSummary();
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '宸插姞杞?;
+
+        showStatus('success', '鉁?浜烘牸鍖呭凡鍔犺浇');
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
+<!-- generated by Iris 2026-07-14 -->

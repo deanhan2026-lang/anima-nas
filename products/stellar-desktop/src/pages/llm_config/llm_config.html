@@ -1,0 +1,364 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <title>STELLAR NYX 2.0 鈥?LLM 閰嶇疆</title>
+  <link rel="stylesheet" href="../../styles/main.css">
+  <style>
+    .model-card {
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .model-card.selected {
+      border-color: var(--cyan);
+      background: rgba(0,212,170,0.06);
+    }
+    .model-card .model-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .model-card .model-desc {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .connection-test {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--card2);
+      border-radius: var(--radius-sm);
+      margin-top: 12px;
+    }
+    .test-spinner {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <span class="logo-icon">鉁?/span>
+      <span>STELLAR NYX</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="StellarNav.navigate('welcome')">娆㈣繋</a>
+      <a onclick="StellarNav.navigate('did_gen')">DID 娉ㄥ唽</a>
+      <a onclick="StellarNav.navigate('carbon_bind')">纰冲熀缁戝畾</a>
+      <a class="active">LLM 閰嶇疆</a>
+      <a onclick="StellarNav.navigate('chat')">瀵硅瘽</a>
+      <a onclick="StellarNav.navigate('skills')">鎶€鑳?/a>
+      <a onclick="StellarNav.navigate('persona_load')">浜烘牸鍔犺浇</a>
+      <a onclick="StellarNav.navigate('dashboard')">鎺у埗鍙?/a>
+    </div>
+    <div class="nav-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">灏辩华</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Step Indicator -->
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <div class="page-title">
+      <span class="accent-bar"></span>
+      <span class="step-badge">3</span>
+      閰嶇疆 LLM API
+    </div>
+    <p class="page-desc">
+      閰嶇疆澶фā鍨?API 杩炴帴銆係TELLAR NYX 闇€瑕?LLM 鍚庣鏉ラ┍鍔ㄦ櫤鑳戒綋浜や簰銆?     鏀寔 DeepSeek銆丱penAI銆丵wen 绛変富娴佹湇鍔″晢銆?
+    </p>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-box status-info hidden">
+      <span class="icon">鈩癸笍</span>
+      <span id="statusTextContent">灏辩华</span>
+    </div>
+
+    <!-- Provider Selection -->
+    <div class="card mb-16">
+      <div class="card-header">
+        <div class="card-icon">馃彚</div>
+        <h3>閫夋嫨鏈嶅姟鍟?/h3>
+      </div>
+      <div class="card-body">
+        <div class="input-group">
+          <label for="providerSelect">LLM 鏈嶅姟鎻愪緵鍟?/label>
+          <select id="providerSelect" class="select-field" onchange="onProviderChange()">
+            <option value="deepseek">DeepSeek锛堟湁鍏嶈垂棰濆害锛?/option>
+            <option value="zhipu">鏅鸿氨 AI / GLM 馃啌 鍏嶈垂</option>
+            <option value="siliconflow">纭呭熀娴佸姩 馃啌 鍏嶈垂</option>
+            <option value="openai">OpenAI</option>
+            <option value="qwen">閫氫箟鍗冮棶 (Qwen)</option>
+            <option value="custom">鑷畾涔?API</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Config Form -->
+    <div class="card mb-16">
+      <div class="card-header">
+        <div class="card-icon">馃攽</div>
+        <h3>API 閰嶇疆</h3>
+      </div>
+      <div class="card-body">
+        <div class="input-group">
+          <label for="apiEndpoint">API 绔偣</label>
+          <input type="text" id="apiEndpoint" class="input-field" placeholder="https://api.deepseek.com/v1/chat/completions">
+          <span class="hint">瀹屾暣鐨?API 璇锋眰 URL锛屽寘鍚矾寰?/span>
+        </div>
+        <div class="input-group">
+          <label for="apiKey">API Key</label>
+          <input type="password" id="apiKey" class="input-field" placeholder="sk-..." value="">
+          <span class="hint">浣犵殑 API 瀵嗛挜锛屽畨鍏ㄥ瓨鍌ㄥ湪鏈湴</span>
+        </div>
+        <div class="input-group">
+          <label for="modelName">妯″瀷鍚嶇О</label>
+          <input type="text" id="modelName" class="input-field" placeholder="deepseek-chat">
+          <span class="hint">妯″瀷 ID锛岀敱鏈嶅姟鍟嗘彁渚?/span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Model Select -->
+    <div class="card mb-16">
+      <div class="card-header">
+        <div class="card-icon">馃殌</div>
+        <h3>蹇€熼€夋嫨妯″瀷</h3>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="quickModels">
+          <div class="model-card card" data-model="GLM-4-Flash" data-provider="zhipu" onclick="quickSelect(this, 'GLM-4-Flash', 'zhipu')" style="border-color:var(--green);background:rgba(0,200,100,0.04);">
+            <div class="model-name">GLM-4-Flash 馃啌</div>
+            <div class="model-desc">鏅鸿氨鍏嶈垂妯″瀷 路 娉ㄥ唽鍗崇敤锛屾棤闇€浠樿垂</div>
+          </div>
+          <div class="model-card card" data-model="deepseek-chat" data-provider="deepseek" onclick="quickSelect(this, 'deepseek-chat', 'deepseek')">
+            <div class="model-name">DeepSeek V3</div>
+            <div class="model-desc">deepseek-chat 路 娉ㄥ唽閫?00涓?tokens</div>
+          </div>
+          <div class="model-card card" data-model="deepseek-reasoner" data-provider="deepseek" onclick="quickSelect(this, 'deepseek-reasoner', 'deepseek')">
+            <div class="model-name">DeepSeek R1</div>
+            <div class="model-desc">deepseek-reasoner 路 娣卞害鎺ㄧ悊</div>
+          </div>
+          <div class="model-card card" data-model="gpt-4o" data-provider="openai" onclick="quickSelect(this, 'gpt-4o', 'openai')">
+            <div class="model-name">GPT-4o</div>
+            <div class="model-desc">OpenAI 鏃楄埌澶氭ā鎬?/div>
+          </div>
+          <div class="model-card card" data-model="qwen-max" data-provider="qwen" onclick="quickSelect(this, 'qwen-max', 'qwen')">
+            <div class="model-name">Qwen-Max</div>
+            <div class="model-desc">閫氫箟鍗冮棶鏈€寮烘ā鍨?/div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-gap" style="flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="testConnection()">
+        馃攲 娴嬭瘯杩炴帴
+      </button>
+      <button class="btn btn-primary" onclick="saveConfig(false)">
+        馃捑 淇濆瓨閰嶇疆
+      </button>
+      <button class="btn btn-success ml-auto" onclick="saveConfig(true)">
+        鉁?淇濆瓨骞剁户缁?鈫?
+      </button>
+    </div>
+
+    <!-- Connection Test Result -->
+    <div id="testResult" class="hidden mt-16"></div>
+  </div>
+
+  <script src="../../shared/theme.js"></script>
+  <script src="../../shared/navigation.js"></script>
+  <script src="../../shared/state.js"></script>
+  <script>
+    const PROVIDERS = {
+      deepseek: {
+        endpoint: 'https://api.deepseek.com/v1/chat/completions',
+        models: ['deepseek-chat', 'deepseek-reasoner']
+      },
+      zhipu: {
+        endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+        models: ['GLM-4-Flash', 'GLM-4-Air', 'GLM-4-Plus']
+      },
+      siliconflow: {
+        endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+        models: ['deepseek-ai/DeepSeek-V3', 'Qwen/Qwen2.5-72B-Instruct', 'THUDM/glm-4-9b-chat']
+      },
+      openai: {
+        endpoint: 'https://api.openai.com/v1/chat/completions',
+        models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo']
+      },
+      qwen: {
+        endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+        models: ['qwen-max', 'qwen-plus', 'qwen-turbo']
+      },
+      custom: {
+        endpoint: '',
+        models: []
+      }
+    };
+
+    function onProviderChange() {
+      const provider = document.getElementById('providerSelect').value;
+      if (provider !== 'custom' && PROVIDERS[provider]) {
+        document.getElementById('apiEndpoint').value = PROVIDERS[provider].endpoint;
+        // Set default model
+        if (PROVIDERS[provider].models.length > 0) {
+          document.getElementById('modelName').value = PROVIDERS[provider].models[0];
+        }
+      }
+    }
+
+    function quickSelect(el, model, provider) {
+      document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('modelName').value = model;
+
+      if (provider && PROVIDERS[provider]) {
+        document.getElementById('providerSelect').value = provider;
+        document.getElementById('apiEndpoint').value = PROVIDERS[provider].endpoint;
+      } else {
+        // Fallback: use current provider
+        const p = document.getElementById('providerSelect').value;
+        if (p !== 'custom' && PROVIDERS[p]) {
+          document.getElementById('apiEndpoint').value = PROVIDERS[p].endpoint;
+        }
+      }
+    }
+
+    async function testConnection() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const endpoint = document.getElementById('apiEndpoint').value.trim();
+      const model = document.getElementById('modelName').value.trim();
+
+      if (!apiKey) {
+        showTestResult('warning', '鈿狅笍 璇疯緭鍏?API Key');
+        return;
+      }
+      if (!endpoint) {
+        showTestResult('warning', '鈿狅笍 璇疯緭鍏?API 绔偣');
+        return;
+      }
+
+      showTestResult('info', '馃攧 姝ｅ湪娴嬭瘯杩炴帴...');
+
+      try {
+        const result = await window.stellarNyx.llmTestConnection({ apiKey, endpoint, model });
+        
+        if (result.success) {
+          showTestResult('success', `鉁?${result.message}`);
+          StellarState.log('success', `LLM 杩炴帴娴嬭瘯鎴愬姛: ${model}`);
+        } else {
+          showTestResult('warning', `鈿狅笍 ${result.message}`);
+        }
+      } catch (err) {
+        showTestResult('error', `鉂?娴嬭瘯澶辫触: ${err.message}`);
+      }
+    }
+
+    function showTestResult(type, message) {
+      const el = document.getElementById('testResult');
+      el.className = `status-box status-${type}`;
+      el.innerHTML = `<span class="icon">${type === 'success' ? '鉁? : type === 'error' ? '鉂? : type === 'warning' ? '鈿狅笍' : '鈩癸笍'}</span><span>${message}</span>`;
+      el.classList.remove('hidden');
+    }
+
+    async function saveConfig(andContinue) {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const endpoint = document.getElementById('apiEndpoint').value.trim();
+      const model = document.getElementById('modelName').value.trim();
+      const provider = document.getElementById('providerSelect').value;
+
+      if (!apiKey) {
+        showStatus('warning', '鈿狅笍 璇疯緭鍏?API Key');
+        return;
+      }
+      if (!endpoint) {
+        showStatus('warning', '鈿狅笍 璇疯緭鍏?API 绔偣');
+        return;
+      }
+
+      const config = { provider, apiKey, endpoint: endpoint, model: model || 'deepseek-chat' };
+
+      try {
+        const result = await window.stellarNyx.llmSaveConfig(config);
+        if (!result.success) {
+          showStatus('error', `鉂?淇濆瓨澶辫触: ${result.error}`);
+          return;
+        }
+
+        StellarState.llmConfigured = true;
+        StellarState.llmConfig = config;
+        StellarState.log('success', `LLM 閰嶇疆宸蹭繚瀛? ${provider}/${model}`);
+
+        // Re-render steps
+        const pageIdx = StellarState.getActiveStepIndex('llm_config');
+        const completed = StellarState.getCompletedSteps();
+        StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '宸查厤缃?;
+
+        if (andContinue) {
+          StellarNav.navigate('persona_load');
+        } else {
+          showStatus('success', '鉁?LLM 閰嶇疆宸蹭繚瀛?);
+        }
+      } catch (err) {
+        showStatus('error', `鉂?淇濆瓨澶辫触: ${err.message}`);
+      }
+    }
+
+    function showStatus(type, message) {
+      const box = document.getElementById('statusMessage');
+      const content = document.getElementById('statusTextContent');
+      box.className = `status-box status-${type}`;
+      content.textContent = message;
+      box.classList.remove('hidden');
+    }
+
+    async function initPage() {
+      document.body.style.opacity = '1';
+      await StellarState.init();
+
+      const pageIdx = StellarState.getActiveStepIndex('llm_config');
+      const completed = StellarState.getCompletedSteps();
+      StellarNav.renderSteps('stepIndicator', pageIdx, completed);
+
+      // Load existing config
+      if (StellarState.llmConfigured && StellarState.llmConfig) {
+        const cfg = StellarState.llmConfig;
+        document.getElementById('providerSelect').value = cfg.provider || 'deepseek';
+        document.getElementById('apiEndpoint').value = cfg.endpoint || '';
+        document.getElementById('apiKey').value = cfg.apiKey || '';
+        document.getElementById('modelName').value = cfg.model || '';
+
+        showStatus('success', '鉁?宸叉湁 LLM 閰嶇疆宸插姞杞?);
+        document.getElementById('statusDot').className = 'dot live';
+        document.getElementById('statusText').textContent = '宸查厤缃?;
+      } else {
+        // Set defaults
+        onProviderChange();
+      }
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
+<!-- generated by Iris 2026-07-14 -->
