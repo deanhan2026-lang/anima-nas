@@ -1,4 +1,26 @@
-*.log
-.DS_Store
+# Python
 __pycache__/
-*.bak.*
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+*.pid
+
+# Data
+*.log
+data/
