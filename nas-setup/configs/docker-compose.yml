@@ -1,0 +1,28 @@
+version: '3.8'
+# ANIMA NAS — Docker Compose 模板
+# 放置于 /srv/anima-nas/qclaw/ 目录
+
+services:
+  qclaw:
+    image: openclaw/openclaw:latest
+    container_name: qclaw
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    ports:
+      - "5050:5050"
+    environment:
+      - TZ=Asia/Shanghai
+
+  memguard:
+    build: /srv/anima-nas/qclaw/silicon-civilization-kb/memguard
+    container_name: memguard
+    restart: unless-stopped
+    volumes:
+      - /srv/anima-nas/qclaw:/data
+    ports:
+      - "5051:5050"
+    environment:
+      - TZ=Asia/Shanghai
+      - DATA_ROOT=/data
