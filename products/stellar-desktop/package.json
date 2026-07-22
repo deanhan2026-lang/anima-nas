@@ -1,0 +1,38 @@
+{
+  "name": "stellar-nyx-desktop",
+  "version": "2.0.0",
+  "description": "STELLAR NYX 2.0 - ANIMA Identity Desktop Node",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build:dir": "electron-builder --win --x64 --dir",
+    "pack": "electron-packager . \"STELLAR NYX 2.0\" --platform=win32 --arch=x64 --out=dist --overwrite --electron-version=28.3.3 --icon=src/assets/icon.ico"
+  },
+  "author": "Iris / ANIMA OS",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "org.anima-os.stellar-nyx-desktop",
+    "productName": "STELLAR NYX 2.0",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "README.md"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "src/assets/icon.ico"
+    }
+  }
+}
